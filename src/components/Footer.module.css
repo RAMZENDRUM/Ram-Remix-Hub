@@ -1,0 +1,46 @@
+.footer {
+    background-color: var(--card-bg);
+    padding: 60px 0 20px;
+    margin-top: 80px;
+    border-top: 1px solid var(--border);
+}
+
+.content {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 40px;
+    margin-bottom: 40px;
+}
+
+.section h3 {
+    font-size: 1.2rem;
+    margin-bottom: 20px;
+    color: var(--primary);
+}
+
+.section p,
+.section a {
+    color: var(--secondary);
+    line-height: 1.6;
+    font-size: 0.95rem;
+    display: block;
+    margin-bottom: 10px;
+    transition: color 0.2s ease;
+}
+
+.section a:hover {
+    color: var(--primary);
+}
+
+.socialLinks {
+    display: flex;
+    gap: 20px;
+}
+
+.copyright {
+    text-align: center;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+    color: var(--secondary);
+    font-size: 0.85rem;
+}

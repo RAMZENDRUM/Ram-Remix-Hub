@@ -1,0 +1,72 @@
+{
+    "global": {
+        "appName": "Ram Remix Hub",
+        "loading": "Loading...",
+        "signIn": "Sign In",
+        "signUp": "Sign Up",
+        "signOut": "Sign Out",
+        "profile": "Profile",
+        "admin": "Admin",
+        "searchPlaceholder": "Search remixes, playlists...",
+        "language": "Language"
+    },
+    "home": {
+        "heroTitle": "Experience the Sound of Future",
+        "heroSubtitle": "Exclusive remixes, beats, and BGMs by Ram.",
+        "listenNow": "Listen Now",
+        "newRemixes": "New Remixes",
+        "topRated": "Top Rated",
+        "curatedPlaylists": "Curated Playlists",
+        "continueListening": "Continue Listening",
+        "community": "From the Community"
+    },
+    "footer": {
+        "aboutTitle": "About Ram",
+        "aboutText": "Ram is an innovative studio remixer crafting fresh, dynamic song remixes. He also creates BGMs for short films and produces instrumental tracks, bringing technical precision and a unique sound to every project.",
+        "contactTitle": "Contact",
+        "contactEmailLabel": "Email",
+        "contactEmailValue": "ramzendrum@gmail.com",
+        "contactLocationLabel": "Location",
+        "contactLocationValue": "Based in Chennai, India",
+        "followTitle": "Follow",
+        "instagramLabel": "Instagram",
+        "spotifyLabel": "Spotify",
+        "copyright": "© Ram Remix Hub. All rights reserved."
+    },
+    "links": {
+        "instagram": "https://www.instagram.com/ramzendrum?igsh=MXBkYXE4YnZmdHN0aA==",
+        "spotify": "https://open.spotify.com/artist/3imsDaYqTYfQZ8ZhSjMD4T?si=PcXvQrghS5O7Y65u5eIc6A",
+        "email": "mailto:ramzendrum@gmail.com"
+    },
+    "auth": {
+        "welcomeBack": "Welcome Back",
+        "createAccount": "Create Account",
+        "signIn": "Sign In",
+        "signUp": "Sign Up",
+        "emailLabel": "Email Address",
+        "passwordLabel": "Password",
+        "forgotPassword": "Forgot Password?",
+        "sendOtp": "Send OTP",
+        "verifyOtp": "Verify OTP",
+        "orContinueWith": "Or continue with",
+        "google": "Google"
+    },
+    "remixDetail": {
+        "play": "Play",
+        "pause": "Pause",
+        "download": "Download",
+        "rate": "Rate this Remix",
+        "feedbackLabel": "Leave Feedback"
+    },
+    "profile": {
+        "title": "Your Profile",
+        "history": "Listening History",
+        "favorites": "Favorites"
+    },
+    "admin": {
+        "dashboard": "Admin Dashboard",
+        "stats": "Statistics",
+        "users": "Users",
+        "feedback": "Feedback"
+    }
+}

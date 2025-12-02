@@ -5,7 +5,11 @@ import RemixCard from '@/components/RemixCard';
 import styles from './page.module.css';
 import uiText from '@/data/ui-text.json';
 import { useSession, signOut } from 'next-auth/react';
-import { db, Remix } from '@/lib/mock-db';
+interface Remix {
+    id: string;
+    title: string;
+    coverUrl: string;
+}
 
 export default function Profile() {
     const { profile } = uiText;

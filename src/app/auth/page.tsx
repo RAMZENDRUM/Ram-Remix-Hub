@@ -1,5 +1,7 @@
 "use client";
 
+import { Suspense } from "react";
+
 import RobotSection from "@/components/RobotSection";
 import LoginCard from "@/components/auth/LoginCard";
 
@@ -14,7 +16,9 @@ export default function AuthPage() {
 
                 {/* Right: Login Card */}
                 <div className="w-full lg:w-2/5 flex justify-center">
-                    <LoginCard />
+                    <Suspense fallback={<div>Loading...</div>}>
+                        <LoginCard />
+                    </Suspense>
                 </div>
             </div>
         </main>

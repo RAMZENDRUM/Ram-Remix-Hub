@@ -132,9 +132,9 @@ export default function Home() {
         {/* RIGHT: Circular Visualizer */}
         <section className="relative flex flex-col items-center justify-center w-full max-w-md">
           {currentTrack ? (
-            <div className="relative flex flex-col items-center justify-center animate-in fade-in zoom-in-95 duration-700">
+            <div className="relative flex flex-col items-center gap-4 animate-in fade-in zoom-in-95 duration-700">
               {/* Visualizer */}
-              <div className="relative z-10 scale-100 md:scale-110 transition-transform duration-500 hover:scale-115">
+              <div className="circular-visualizer relative z-10 scale-100 md:scale-110 transition-transform duration-500 hover:scale-115">
                 <EliteVisualizer
                   coverUrl={currentTrack.coverImageUrl}
                   size={300}
@@ -142,7 +142,7 @@ export default function Home() {
               </div>
 
               {/* Track Info (Floating below) */}
-              <div className="mt-6 text-center space-y-1 z-20 bg-black/40 backdrop-blur-xl px-6 py-3 rounded-2xl border border-white/5 shadow-2xl">
+              <div className="mt-2 text-center space-y-1 z-20 bg-black/40 backdrop-blur-xl px-6 py-3 rounded-2xl border border-white/5 shadow-2xl">
                 <h3 className="text-lg font-bold text-white tracking-tight truncate max-w-[250px]">
                   {currentTrack.title}
                 </h3>

@@ -11,6 +11,7 @@ import { usePlayer } from "@/context/PlayerContext";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/context/ToastContext";
 import { formatTime } from "@/lib/formatTime";
+import { StarButton } from "@/components/ui/star-button";
 
 type IconButtonWithTooltipProps = {
     label: string;
@@ -375,12 +376,18 @@ export default function GlobalPlayer() {
                                     <SkipBack size={20} fill="currentColor" />
                                 </button>
 
-                                <button
+                                <StarButton
                                     onClick={togglePlay}
-                                    className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 text-white shadow-lg shadow-purple-500/40 hover:scale-110 active:scale-95 transition-all duration-300 border border-white/10"
+                                    className="h-12 px-6 rounded-full bg-purple-600/80 text-white shadow-lg shadow-purple-500/40"
+                                    backgroundColor="#4C1D95"
+                                    lightColor="#F5F3FF"
                                 >
-                                    {isPlaying ? <Pause size={20} fill="white" /> : <Play size={20} fill="white" className="ml-0.5" />}
-                                </button>
+                                    {isPlaying ? (
+                                        <Pause size={20} fill="white" />
+                                    ) : (
+                                        <Play size={20} fill="white" className="ml-0.5" />
+                                    )}
+                                </StarButton>
 
                                 <button
                                     onClick={nextTrack}

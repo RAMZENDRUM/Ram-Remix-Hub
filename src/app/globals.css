@@ -141,3 +141,45 @@
     transform: scaleY(1.2);
   }
 }
+
+@keyframes star-btn {
+  to {
+    offset-distance: 100%;
+  }
+}
+
+.animate-star-btn {
+  animation: star-btn var(--duration, 3s) linear infinite;
+}
+
+.circular-visualizer {
+  position: relative;
+  /* Ensure relative positioning for pseudo-element */
+  /* width and height are controlled by the container or inline styles usually, but we can set defaults if needed, though the prompt implies modifying existing or adding new. Since there was no .circular-visualizer class before, we add it to target the container in page.tsx */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.circular-visualizer::before {
+  content: "";
+  position: absolute;
+  inset: -60px;
+  /* spread of glow around the circle */
+  border-radius: 50%;
+  background: radial-gradient(circle at center,
+      rgba(255, 255, 255, 0.45) 0%,
+      /* white core */
+      rgba(233, 213, 255, 0.45) 30%,
+      /* light lavender */
+      rgba(168, 85, 255, 0.35) 55%,
+      /* light purple */
+      rgba(24, 24, 27, 0) 80%
+      /* fade out */
+    );
+  filter: blur(22px);
+  opacity: 0.95;
+  z-index: -1;
+  /* stays behind the visualizer canvas */
+  pointer-events: none;
+}

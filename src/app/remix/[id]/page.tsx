@@ -2,14 +2,12 @@
 
 import React, { useEffect, useState, use } from 'react';
 import { Play, Download, Heart, Star, Share2, MessageSquare } from 'lucide-react';
-import styles from './page.module.css';
 import uiText from '@/data/ui-text.json';
 import { usePlayer } from '@/context/PlayerContext';
 import { RatingModal } from '@/components/ui/RatingModal';
 import { useToast } from '@/context/ToastContext';
-import { StarButton } from '@/components/ui/star-button';
-import { FavoriteButton } from '@/components/ui/favorite-button';
 import { cn } from '@/lib/utils';
+import { useSyncRouteWithPlayer } from '@/hooks/useSyncRouteWithPlayer';
 
 interface Track {
     id: string;
@@ -31,10 +29,6 @@ interface Review {
     createdAt: string;
     userId: string | null;
 }
-
-import { useSyncRouteWithPlayer } from '@/hooks/useSyncRouteWithPlayer';
-
-// ... imports
 
 export default function RemixDetail({ params }: { params: Promise<{ id: string }> }) {
     const { id } = use(params);
@@ -174,158 +168,192 @@ export default function RemixDetail({ params }: { params: Promise<{ id: string }
     const tagsList = track.tags ? track.tags.split(',').map(t => t.trim()) : [];
 
     return (
-        <div className={styles.container}>
-            <div className={styles.header}>
-                <div className={styles.coverContainer}>
-                    <img
-                        src={track.coverImageUrl || 'https://picsum.photos/seed/1/600/600'}
-                        alt={track.title}
-                        className={styles.cover}
-                    />
-                </div>
+        <div className="min-h-screen pt-24 pb-32 px-4 md:px-8">
+            <div className="max-w-5xl mx-auto">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
 
-                <div className={styles.info}>
-                    <span className={styles.type}>{track.type}</span>
-                    <h1 className={styles.title}>{track.title}</h1>
-                    <p className={styles.artist}>{track.artist || 'Ram'}</p>
-
-                    <div className="mt-6 flex items-center gap-4">
-                        <StarButton
-                            onClick={handlePlay}
-                            className={cn(
-                                "h-11 px-7 rounded-full inline-flex items-center justify-center gap-2",
-                                "py-0 leading-none",
-                                "bg-gradient-to-r from-violet-500 via-fuchsia-500 to-sky-400",
-                                "text-sm font-medium text-slate-900 shadow-[0_0_30px_rgba(129,140,248,0.55)]"
-                            )}
-                            backgroundColor="#020617"
-                            lightColor="#F9FAFB"
-                            borderWidth={1}
-                        >
-                            <Play className="h-4 w-4" />
-                            <span>{remixDetail.play}</span>
-                        </StarButton>
-
-                        <button
-                            onClick={handleLike}
-                            className={`flex h-10 w-10 items-center justify-center rounded-full bg-slate-900/80 border border-slate-700/60 hover:bg-fuchsia-600/20 hover:border-fuchsia-400/60 ${isLiked ? "text-fuchsia-400" : ""}`}
-                            aria-label="Toggle favourite"
-                        >
-                            <Heart className={`h-4 w-4 ${isLiked ? "fill-current" : ""}`} />
-                        </button>
-
-                        <button
-                            onClick={handleDownload}
-                            className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-900/80 border border-slate-700/60 hover:bg-sky-500/15 hover:border-sky-400/60"
-                            aria-label="Download track"
-                        >
-                            <Download className="h-4 w-4" />
-                        </button>
-
-                        <button
-                            onClick={handleShare}
-                            className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-900/80 border border-slate-700/60 hover:bg-emerald-500/15 hover:border-emerald-400/60"
-                            aria-label="Share track"
-                        >
-                            <Share2 className="h-4 w-4" />
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <div className={styles.stats}>
-                <div className={styles.statItem}>
-                    <span className={styles.statValue}>1.2K</span>
-                    <span className={styles.statLabel}>Plays</span>
-                </div>
-                <div className={styles.statItem}>
-                    <span className={styles.statValue}>150+</span>
-                    <span className={styles.statLabel}>Downloads</span>
-                </div>
-                <div className={styles.statItem}>
-                    <span className={styles.statValue}>{ratingStats.average || '-'}</span>
-                    <span className={styles.statLabel}>Rating ({ratingStats.count})</span>
-                </div>
-            </div>
-
-            <div className={styles.description}>
-                <h2 className={styles.sectionTitle}>About this Track</h2>
-                <p className={styles.text}>{track.description}</p>
-                <div className={styles.tags}>
-                    {tagsList.map(tag => (
-                        <span key={tag} className={styles.tag}>{tag}</span>
-                    ))}
-                </div>
-            </div>
-
-            {/* Rating & Feedback Section */}
-            <div className={styles.description}>
-                <div className="flex items-center justify-between mb-6">
-                    <h2 className={styles.sectionTitle}>{remixDetail.rate}</h2>
-                    <button
-                        onClick={() => setIsRatingModalOpen(true)}
-                        className="text-sm text-purple-400 hover:text-purple-300 hover:underline"
-                    >
-                        Write a Review
-                    </button>
-                </div>
-
-                <div className="flex items-center gap-4 mb-8">
-                    <div className="flex gap-1">
-                        {[1, 2, 3, 4, 5].map(star => (
-                            <Star
-                                key={star}
-                                size={24}
-                                fill={star <= Math.round(ratingStats.average) ? "#ffd700" : "none"}
-                                color={star <= Math.round(ratingStats.average) ? "#ffd700" : "#4b5563"}
+                    {/* Left Column: Media Area */}
+                    <div className="lg:col-span-5 flex flex-col gap-8">
+                        {/* Cover Image */}
+                        <div className="relative aspect-square rounded-3xl overflow-hidden border border-white/10 shadow-2xl shadow-purple-900/20 group">
+                            <img
+                                src={track.coverImageUrl || 'https://picsum.photos/seed/1/600/600'}
+                                alt={track.title}
+                                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                             />
-                        ))}
-                    </div>
-                    <span className="text-2xl font-bold text-white">{ratingStats.average}</span>
-                    <span className="text-neutral-500">/ 5</span>
-                </div>
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-60" />
+                        </div>
 
-                <button
-                    onClick={() => setIsRatingModalOpen(true)}
-                    className={styles.actionButton}
-                    style={{ width: 'auto', padding: '0 24px', borderRadius: '12px', background: 'rgba(147, 51, 234, 0.1)', border: '1px solid rgba(147, 51, 234, 0.3)', color: '#d8b4fe' }}
-                >
-                    {remixDetail.feedbackLabel}
-                </button>
+                        {/* Action Buttons Row */}
+                        <div className="flex items-center justify-between gap-4 px-2">
+                            <button
+                                onClick={handleLike}
+                                className={`flex-1 flex items-center justify-center py-3 rounded-full border transition-all duration-300 ${isLiked
+                                        ? "bg-fuchsia-500/20 border-fuchsia-500/50 text-fuchsia-400"
+                                        : "bg-white/5 border-white/10 text-white/70 hover:bg-white/10"
+                                    }`}
+                                aria-label="Toggle favourite"
+                            >
+                                <Heart className={`h-5 w-5 ${isLiked ? "fill-current" : ""}`} />
+                            </button>
 
-                {/* User Reviews */}
-                {reviews.length > 0 && (
-                    <div className="mt-10 space-y-6">
-                        <h3 className="text-lg font-semibold text-white flex items-center gap-2">
-                            <MessageSquare size={18} />
-                            User Reviews
-                        </h3>
-                        <div className="space-y-4">
-                            {reviews.map((review) => (
-                                <div key={review.id} className="bg-neutral-900/50 border border-neutral-800 rounded-xl p-4">
-                                    <div className="flex items-center justify-between mb-2">
-                                        <div className="flex items-center gap-2">
-                                            <div className="flex gap-0.5">
-                                                {[...Array(5)].map((_, i) => (
-                                                    <Star
-                                                        key={i}
-                                                        size={12}
-                                                        fill={i < review.rating ? "#ffd700" : "none"}
-                                                        color={i < review.rating ? "#ffd700" : "#4b5563"}
-                                                    />
-                                                ))}
-                                            </div>
-                                            <span className="text-xs text-neutral-500">
-                                                {new Date(review.createdAt).toLocaleDateString()}
-                                            </span>
-                                        </div>
-                                    </div>
-                                    <p className="text-sm text-neutral-300">{review.feedback}</p>
-                                </div>
-                            ))}
+                            <button
+                                onClick={handlePlay}
+                                className="flex-[2] flex items-center justify-center gap-2 py-3 rounded-full bg-gradient-to-r from-[#C69AFF] to-[#6F5BFF] text-white font-bold shadow-[0_0_20px_rgba(140,92,255,0.4)] hover:shadow-[0_0_30px_rgba(140,92,255,0.6)] hover:brightness-110 transition-all duration-300 transform hover:-translate-y-0.5"
+                            >
+                                <Play className="h-5 w-5 fill-current" />
+                                <span>Play Now</span>
+                            </button>
+
+                            <button
+                                onClick={handleDownload}
+                                className="flex-1 flex items-center justify-center py-3 rounded-full bg-white/5 border border-white/10 text-white/70 hover:bg-white/10 transition-all duration-300"
+                                aria-label="Download track"
+                            >
+                                <Download className="h-5 w-5" />
+                            </button>
+
+                            <button
+                                onClick={handleShare}
+                                className="flex-1 flex items-center justify-center py-3 rounded-full bg-white/5 border border-white/10 text-white/70 hover:bg-white/10 transition-all duration-300"
+                                aria-label="Share track"
+                            >
+                                <Share2 className="h-5 w-5" />
+                            </button>
                         </div>
                     </div>
-                )}
+
+                    {/* Right Column: Info Area */}
+                    <div className="lg:col-span-7 flex flex-col gap-8 pt-2">
+
+                        {/* Title & Artist */}
+                        <div className="space-y-2">
+                            <div className="flex items-center gap-3">
+                                <span className="px-3 py-1 rounded-full bg-purple-500/20 border border-purple-500/30 text-purple-300 text-xs font-bold uppercase tracking-wider">
+                                    {track.type || 'Remix'}
+                                </span>
+                                {track.genre && (
+                                    <span className="px-3 py-1 rounded-full bg-white/5 border border-white/10 text-white/60 text-xs font-medium uppercase tracking-wider">
+                                        {track.genre}
+                                    </span>
+                                )}
+                            </div>
+
+                            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-white via-white to-purple-300 leading-tight">
+                                {track.title}
+                            </h1>
+
+                            <p className="text-xl text-white/60 font-medium flex items-center gap-2">
+                                By <span className="text-white hover:text-purple-400 transition-colors cursor-pointer">{track.artist || 'Ram'}</span>
+                            </p>
+                        </div>
+
+                        {/* Stats Grid */}
+                        <div className="grid grid-cols-3 gap-4 p-6 bg-white/5 backdrop-blur-xl rounded-3xl border border-white/10">
+                            <div className="flex flex-col items-center justify-center text-center gap-1 border-r border-white/5 last:border-0">
+                                <span className="text-2xl font-bold text-white">1.2K</span>
+                                <span className="text-xs text-white/40 uppercase tracking-wider font-medium">Plays</span>
+                            </div>
+                            <div className="flex flex-col items-center justify-center text-center gap-1 border-r border-white/5 last:border-0">
+                                <span className="text-2xl font-bold text-white">150+</span>
+                                <span className="text-xs text-white/40 uppercase tracking-wider font-medium">Downloads</span>
+                            </div>
+                            <div className="flex flex-col items-center justify-center text-center gap-1">
+                                <span className="text-2xl font-bold text-yellow-400 flex items-center gap-1">
+                                    {ratingStats.average || '-'} <Star size={14} fill="currentColor" />
+                                </span>
+                                <span className="text-xs text-white/40 uppercase tracking-wider font-medium">Rating</span>
+                            </div>
+                        </div>
+
+                        {/* About Section */}
+                        <div className="space-y-4">
+                            <h3 className="text-lg font-bold text-white/90">About this Track</h3>
+                            <p className="text-white/60 leading-relaxed">
+                                {track.description || "No description available yet."}
+                            </p>
+                            {tagsList.length > 0 && (
+                                <div className="flex flex-wrap gap-2 pt-2">
+                                    {tagsList.map(tag => (
+                                        <span key={tag} className="px-3 py-1 rounded-full bg-white/5 text-white/50 text-xs hover:bg-white/10 transition-colors cursor-default">
+                                            #{tag}
+                                        </span>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Rating & Feedback Section */}
+                        <div className="space-y-6 pt-6 border-t border-white/10">
+                            <div className="flex items-center justify-between">
+                                <h3 className="text-lg font-bold text-white/90">Rate this Remix</h3>
+                                <button
+                                    onClick={() => setIsRatingModalOpen(true)}
+                                    className="text-sm font-medium text-purple-400 hover:text-purple-300 transition-colors"
+                                >
+                                    Write a Review
+                                </button>
+                            </div>
+
+                            <div className="flex items-center gap-6">
+                                <div className="flex gap-1">
+                                    {[1, 2, 3, 4, 5].map(star => (
+                                        <Star
+                                            key={star}
+                                            size={28}
+                                            fill={star <= Math.round(ratingStats.average) ? "#ffd700" : "none"}
+                                            color={star <= Math.round(ratingStats.average) ? "#ffd700" : "#4b5563"}
+                                            className="transition-transform hover:scale-110"
+                                        />
+                                    ))}
+                                </div>
+                                <div className="h-8 w-px bg-white/10" />
+                                <span className="text-sm text-white/50">
+                                    {ratingStats.count > 0 ? `${ratingStats.count} ratings` : "Be the first to rate"}
+                                </span>
+                            </div>
+
+                            <button
+                                onClick={() => setIsRatingModalOpen(true)}
+                                className="w-full sm:w-auto px-8 py-3 rounded-full bg-white/5 border border-white/10 text-white font-medium hover:bg-white/10 transition-all duration-300"
+                            >
+                                Leave Feedback
+                            </button>
+                        </div>
+
+                        {/* User Reviews Preview */}
+                        {reviews.length > 0 && (
+                            <div className="space-y-4 pt-6 border-t border-white/10">
+                                <h3 className="text-lg font-bold text-white/90 flex items-center gap-2">
+                                    <MessageSquare size={18} /> Recent Reviews
+                                </h3>
+                                <div className="space-y-3">
+                                    {reviews.slice(0, 2).map((review) => (
+                                        <div key={review.id} className="bg-white/5 rounded-2xl p-4 border border-white/5">
+                                            <div className="flex items-center justify-between mb-2">
+                                                <div className="flex gap-0.5">
+                                                    {[...Array(5)].map((_, i) => (
+                                                        <Star
+                                                            key={i}
+                                                            size={12}
+                                                            fill={i < review.rating ? "#ffd700" : "none"}
+                                                            color={i < review.rating ? "#ffd700" : "#4b5563"}
+                                                        />
+                                                    ))}
+                                                </div>
+                                                <span className="text-xs text-white/30">
+                                                    {new Date(review.createdAt).toLocaleDateString()}
+                                                </span>
+                                            </div>
+                                            <p className="text-sm text-white/70">{review.feedback}</p>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                    </div>
+                </div>
             </div>
 
             <RatingModal

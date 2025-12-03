@@ -36,7 +36,7 @@ export function SiteFooter() {
             <div className="absolute top-0 left-0 w-full flex justify-center -translate-y-1/2">
                 <WavePath className="w-full max-w-6xl" />
             </div>
-            <div className="mx-auto w-full max-w-6xl px-4 md:px-6">
+            <div className="mx-auto w-full max-w-6xl px-4 md:px-6 relative z-20">
                 {/* Brand & Content Container */}
                 <div className="flex flex-col gap-8">
                     {/* Brand Logo */}

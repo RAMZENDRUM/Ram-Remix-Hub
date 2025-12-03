@@ -200,7 +200,7 @@ export function ListenerProfile({ user }: ListenerProfileProps) {
                         <button
                             key={lang.code}
                             onClick={() => setLanguage(lang.code)}
-                            className={`relative flex items-center justify-between px-6 py-5 rounded-2xl border transition-all duration-300 group ${language === lang.code
+                            className={`relative flex items-center justify-between px-4 py-3 rounded-2xl border transition-all duration-300 group ${language === lang.code
                                 ? 'bg-gradient-to-r from-[#C69AFF] to-[#6F5BFF] border-transparent shadow-xl shadow-purple-900/30 scale-[1.02]'
                                 : 'bg-black/40 border-white/10 hover:bg-white/5 hover:border-white/20'
                                 }`}

@@ -84,7 +84,14 @@ export function StarButton({
             }
             ref={pathRef}
             className={cn(
-                "relative z-[3] overflow-hidden h-10 px-4 py-2 inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-3xl text-sm font-medium transition-colors disabled:pointer-events-none disabled:opacity-50 group/star-button",
+                // layout
+                "relative z-[3] overflow-hidden inline-flex items-center justify-center gap-2 whitespace-nowrap group/star-button",
+                // sizing: no weird extra padding
+                "h-11 px-6 py-0",
+                // typography
+                "text-sm font-medium leading-none",
+                // visuals
+                "rounded-3xl transition-colors disabled:pointer-events-none disabled:opacity-50",
                 className
             )}
             {...props}
@@ -106,7 +113,7 @@ export function StarButton({
             >
                 <StarBackground color={backgroundColor} />
             </div>
-            <span className="z-10 relative bg-gradient-to-t dark:from-white dark:to-neutral-500 from-black to-neutral-400 inline-block text-transparent bg-clip-text">
+            <span className="z-10 relative bg-gradient-to-t dark:from-white dark:to-neutral-500 from-black to-neutral-400 inline-block text-transparent bg-clip-text leading-none">
                 {children}
             </span>
         </button>

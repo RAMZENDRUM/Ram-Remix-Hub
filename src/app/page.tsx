@@ -140,7 +140,17 @@ export default function Home() {
                 />
               </div>
 
-              <div className="min-w-[260px] rounded-2xl bg-slate-900/80 border border-slate-800/80 px-5 py-4 shadow-[0_0_40px_rgba(56,189,248,0.28)] backdrop-blur">
+              <div
+                className="
+                  min-w-[260px]
+                  rounded-2xl
+                  bg-slate-900/60
+                  px-5 py-4
+                  shadow-[0_0_35px_rgba(56,189,248,0.35)]
+                  backdrop-blur
+                  translate-y-[-12px]
+                "
+              >
                 <div className="flex items-start justify-between gap-3">
                   <div className="space-y-1">
                     <p className="text-[10px] uppercase tracking-[0.22em] text-slate-400">

@@ -12,6 +12,7 @@ import { cn } from "@/lib/utils";
 import { useToast } from "@/context/ToastContext";
 import { formatTime } from "@/lib/formatTime";
 import { StarButton } from "@/components/ui/star-button";
+import { TrackInfoPanel } from "@/components/track-info-panel";
 
 type IconButtonWithTooltipProps = {
     label: string;
@@ -465,124 +466,29 @@ export default function GlobalPlayer() {
                 )}
             </footer>
 
-            {/* Track Info Overlay */}
-            {infoOpen && currentTrack && !miniMode && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-8">
-                    {/* Backdrop */}
-                    <div
-                        className="absolute inset-0 bg-black/60 backdrop-blur-xl animate-in fade-in duration-300"
-                        onClick={() => setInfoOpen(false)}
-                    />
-
-                    {/* Card */}
-                    <div className="relative w-full max-w-4xl rounded-3xl border border-neutral-800/80 bg-gradient-to-br from-neutral-950 via-neutral-900/95 to-neutral-950 shadow-[0_40px_120px_rgba(0,0,0,0.8)] overflow-hidden animate-in zoom-in-95 slide-in-from-bottom-4 duration-300">
-                        {/* Background Gradient Effect */}
-                        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(168,85,247,0.1),transparent_50%),_radial-gradient(circle_at_bottom_left,_rgba(59,130,246,0.1),transparent_50%)]" />
-
-                        {/* Close Button */}
-                        <button
-                            onClick={() => setInfoOpen(false)}
-                            className="absolute top-4 right-4 z-20 p-2 text-neutral-400 hover:text-white bg-white/5 hover:bg-white/10 rounded-full transition-all backdrop-blur-md"
-                            aria-label="Close info"
-                        >
-                            <X size={20} />
-                        </button>
-
-                        <div className="grid grid-cols-1 md:grid-cols-[1.2fr_1fr] gap-8 md:gap-10 p-6 md:p-10 relative z-10">
-                            {/* LEFT: Text + Progress */}
-                            <div className="flex flex-col justify-center gap-6 order-2 md:order-1">
-                                <div className="space-y-4">
-                                    <div className="text-xs uppercase tracking-[0.2em] text-purple-400/80 font-bold">
-                                        {/* @ts-ignore */}
-                                        {currentTrack.type || "Remix"}
-                                    </div>
-
-                                    <h2 className="text-3xl md:text-5xl font-bold text-white leading-tight tracking-tight line-clamp-2">
-                                        {currentTrack.title}
-                                    </h2>
-
-                                    <button className="self-start text-lg md:text-xl text-purple-400 hover:text-purple-300 transition-colors font-semibold">
-                                        {currentTrack.artist || "Unknown artist"}
-                                    </button>
-
-                                    <div className="flex flex-wrap items-center gap-3 text-xs text-neutral-300 pt-2">
-                                        {currentTrack.genre && (
-                                            <span className="rounded-full bg-purple-500/10 border border-purple-500/20 px-3 py-1 uppercase tracking-wide text-[10px] text-purple-300 font-bold">
-                                                {currentTrack.genre}
-                                            </span>
-                                        )}
-                                        {duration > 0 && (
-                                            <span className="rounded-full bg-neutral-800/80 px-3 py-1 font-mono text-neutral-400">
-                                                {formatTime(duration)}
-                                            </span>
-                                        )}
-                                    </div>
-                                </div>
-
-                                {/* Progress */}
-                                <div className="mt-4 md:mt-8 flex flex-col gap-3">
-                                    <div className="flex items-center gap-4 text-xs font-mono text-neutral-400">
-                                        <span className="w-10 text-right">{formatTime(currentTime)}</span>
-                                        <CustomSlider
-                                            min={0}
-                                            max={duration || 0}
-                                            value={currentTime}
-                                            onChange={handleSeek}
-                                            className="flex-1 h-3"
-                                        />
-                                        <span className="w-10">{formatTime(duration)}</span>
-                                    </div>
-                                </div>
-
-                                {/* Actions row */}
-                                <div className="mt-4 md:mt-6 flex flex-wrap items-center gap-4">
-                                    <button
-                                        onClick={handleLike}
-                                        className="group flex items-center gap-2 rounded-xl border border-neutral-800 bg-neutral-900/50 px-4 py-2 text-sm font-medium text-neutral-300 transition-all hover:border-purple-500/50 hover:bg-purple-900/10 hover:text-white hover:shadow-[0_0_15px_rgba(168,85,247,0.15)]"
-                                    >
-                                        <Heart size={20} className="text-purple-500 group-hover:text-purple-400" />
-                                        <span>Like</span>
-                                    </button>
-
-                                    <IconButtonWithTooltip label="Download" onClick={handleDownload}>
-                                        <Download size={24} />
-                                    </IconButtonWithTooltip>
-                                    <IconButtonWithTooltip label="Share" onClick={handleShare}>
-                                        <Share2 size={24} />
-                                    </IconButtonWithTooltip>
-                                    <IconButtonWithTooltip label="Add to Playlist" onClick={handleAddToPlaylist}>
-                                        <Plus size={24} />
-                                    </IconButtonWithTooltip>
-                                </div>
-                            </div>
-
-                            {/* RIGHT: Cover + Vertical Buttons */}
-                            <div className="flex items-center justify-center order-1 md:order-2">
-                                <div className="relative h-64 w-64 md:h-[20rem] md:w-[20rem] rounded-[2rem] overflow-hidden shadow-[0_20px_60px_rgba(0,0,0,0.6)] border border-white/5 group">
-                                    {currentTrack.coverImageUrl ? (
-                                        <Image
-                                            src={currentTrack.coverImageUrl}
-                                            alt={currentTrack.title}
-                                            fill
-                                            className="object-cover transition-transform duration-700 group-hover:scale-105"
-                                        />
-                                    ) : (
-                                        <div className="flex h-full w-full items-center justify-center bg-neutral-900 text-neutral-500">
-                                            <div className="text-center">
-                                                <div className="mb-2 text-4xl">🎵</div>
-                                                <div className="text-sm uppercase tracking-widest">No Cover</div>
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    {/* Shine effect */}
-                                    <div className="absolute inset-0 bg-gradient-to-tr from-white/10 to-transparent pointer-events-none" />
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
+            {/* Track Info Panel */}
+            <TrackInfoPanel
+                open={infoOpen}
+                onClose={() => setInfoOpen(false)}
+                songTitle={currentTrack?.title ?? ""}
+                artistName={currentTrack?.artist ?? ""}
+                albumArt={currentTrack?.coverImageUrl ?? null}
+                duration={duration}
+                currentTime={currentTime}
+                isPlaying={isPlaying}
+                onPlayPause={togglePlay}
+                onPrev={prevTrack}
+                onNext={nextTrack}
+                onSeek={handleSeek}
+                volume={volume * 100}
+                onVolumeChange={handleVolumeChange}
+                isLiked={false} // You might want to wire this to real liked state if available
+                onToggleLike={handleLike}
+                isRepeat={loopMode !== "off"}
+                onToggleRepeat={toggleLoopMode}
+                isShuffle={isShuffle}
+                onToggleShuffle={toggleShuffle}
+            />
         </>
     );
 }

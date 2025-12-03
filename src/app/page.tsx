@@ -20,6 +20,8 @@ import { formatTime } from "@/lib/formatTime";
 const AudioVisualizer = () => {
   const { analyser, isPlaying } = usePlayer();
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  // Store previous values for smoothing
+  const previousDataRef = useRef<number[]>([]);
 
   useEffect(() => {
     if (!canvasRef.current) return;
@@ -29,10 +31,20 @@ const AudioVisualizer = () => {
     if (!ctx) return;
 
     let animationId: number;
+    // FFT size 256 = 128 bins. We'll use a subset for the visualizer.
     const bufferLength = analyser ? analyser.frequencyBinCount : 128;
     const dataArray = new Uint8Array(bufferLength);
 
-    // Fallback simulation variables
+    // Initialize previous data if needed
+    if (previousDataRef.current.length !== 40) {
+      previousDataRef.current = new Array(40).fill(0);
+    }
+
+    // Linear Interpolation for smoothness
+    const lerp = (start: number, end: number, factor: number) => {
+      return start + (end - start) * factor;
+    };
+
     let simOffset = 0;
 
     const draw = () => {
@@ -43,71 +55,86 @@ const AudioVisualizer = () => {
 
       ctx.clearRect(0, 0, width, height);
 
-      // Check if we have valid data
       let hasData = false;
       if (analyser && isPlaying) {
         analyser.getByteFrequencyData(dataArray);
-        // Check if array has any non-zero values
-        for (let i = 0; i < bufferLength; i++) {
-          if (dataArray[i] > 0) {
-            hasData = true;
-            break;
-          }
-        }
+        if (dataArray.some(v => v > 0)) hasData = true;
       }
 
-      // If no real data (CORS issue or paused), simulate or show idle
+      // SIMULATION FALLBACK
       if (!hasData) {
         if (isPlaying) {
-          // SIMULATE BEAT (Fallback)
-          simOffset += 0.1;
-          for (let i = 0; i < bufferLength; i++) {
-            // Create a fake wave pattern
-            const value = Math.sin(i * 0.2 + simOffset) * 50 +
-              Math.sin(i * 0.1 - simOffset * 2) * 30 + 100;
-            dataArray[i] = value;
+          simOffset += 0.15; // Faster beat
+          for (let i = 0; i < 40; i++) {
+            // Complex wave simulation
+            const val = Math.sin(i * 0.2 + simOffset) * 40 +
+              Math.cos(i * 0.3 - simOffset * 1.5) * 20 + 80;
+            // Fill dataArray for the loop below to consume
+            // We map our 40 bars to the first 40 bins of dataArray for simplicity here
+            dataArray[i] = val;
           }
         } else {
-          // IDLE STATE (Gentle ripple)
+          // Idle gentle wave
           simOffset += 0.05;
-          for (let i = 0; i < bufferLength; i++) {
+          for (let i = 0; i < 40; i++) {
             dataArray[i] = Math.sin(i * 0.1 + simOffset) * 10 + 20;
           }
         }
       }
 
-      // DRAWING LOGIC (Mirrored Wave)
-      const barWidth = (width / bufferLength) * 2.5;
-      let x = 0;
+      // RENDER LOOP
+      const barCount = 40;
+      const barWidth = (width / barCount) * 0.6; // Thinner, more elegant bars
+      const gap = (width - (barCount * barWidth)) / (barCount + 1);
 
-      // Create Cyberpunk Gradient
-      const gradient = ctx.createLinearGradient(0, 0, width, height);
-      gradient.addColorStop(0, '#d946ef'); // Fuchsia
-      gradient.addColorStop(0.5, '#8b5cf6'); // Violet
-      gradient.addColorStop(1, '#06b6d4'); // Cyan
+      // Create Premium Gradient
+      const gradient = ctx.createLinearGradient(0, height, 0, 0);
+      gradient.addColorStop(0, '#0ea5e9'); // Sky 500 (Bottom)
+      gradient.addColorStop(0.5, '#8b5cf6'); // Violet 500
+      gradient.addColorStop(1, '#d946ef'); // Fuchsia 500 (Top)
 
       ctx.fillStyle = gradient;
-      ctx.shadowBlur = 15;
-      ctx.shadowColor = "rgba(139, 92, 246, 0.5)";
 
-      // Draw from center out
-      const centerX = width / 2;
+      // Add Glow
+      ctx.shadowBlur = 10;
+      ctx.shadowColor = "rgba(139, 92, 246, 0.4)";
 
-      for (let i = 0; i < bufferLength; i++) {
-        // Focus on bass/mids for better visual effect
-        // If simulating, use direct index. If real, skip high freqs.
-        const index = hasData ? Math.floor(i * (bufferLength / 60)) : i;
-        const value = dataArray[index] || 0;
+      // Step size to distribute 128 bins across 40 bars
+      // We focus on the lower half (bass/mids) which is usually index 0-60
+      const step = Math.floor(60 / barCount);
 
-        const barHeight = (value / 255) * height * 0.8; // Scale height
+      for (let i = 0; i < barCount; i++) {
+        // Get target value
+        let value = 0;
+        if (hasData) {
+          // Average a few bins for stability
+          let sum = 0;
+          for (let j = 0; j < step; j++) {
+            sum += dataArray[(i * step) + j] || 0;
+          }
+          value = sum / step;
+        } else {
+          // Use simulated data
+          value = dataArray[i];
+        }
 
-        // Right side
-        ctx.fillRect(centerX + x, (height - barHeight) / 2, barWidth, barHeight);
-        // Left side (Mirror)
-        ctx.fillRect(centerX - x - barWidth, (height - barHeight) / 2, barWidth, barHeight);
+        // Apply Smoothing (Lerp)
+        // factor 0.2 = responsive but smooth. 0.1 = very smooth/slow.
+        const smoothValue = lerp(previousDataRef.current[i], value, 0.2);
+        previousDataRef.current[i] = smoothValue;
 
-        x += barWidth + 1;
-        if (x > centerX) break;
+        // Calculate Height
+        // Scale 0-255 to 0-height
+        const barHeight = (smoothValue / 255) * height;
+
+        // Draw Rounded Bar
+        const x = gap + i * (barWidth + gap);
+        const y = height - barHeight;
+
+        // Draw rect
+        ctx.beginPath();
+        ctx.roundRect(x, y, barWidth, barHeight, 4); // 4px border radius
+        ctx.fill();
       }
     };
 
@@ -118,7 +145,7 @@ const AudioVisualizer = () => {
     };
   }, [analyser, isPlaying]);
 
-  return <canvas ref={canvasRef} width={400} height={100} className="w-full h-full opacity-90" />;
+  return <canvas ref={canvasRef} width={400} height={100} className="w-full h-full" />;
 };
 
 export default function Home() {

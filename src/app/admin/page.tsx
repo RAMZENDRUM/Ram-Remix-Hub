@@ -16,9 +16,12 @@ interface Track {
     id: string;
     title: string;
     artist?: string;
+    description?: string;
+    genre?: string;
     type: string;
     isUnlisted: boolean;
     coverImageUrl?: string | null;
+    audioUrl?: string | null;
 }
 
 export default function AdminDashboard() {

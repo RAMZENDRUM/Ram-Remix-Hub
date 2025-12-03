@@ -378,14 +378,20 @@ export default function GlobalPlayer() {
 
                                 <StarButton
                                     onClick={togglePlay}
-                                    className="h-12 px-6 rounded-full bg-purple-600/80 text-white shadow-lg shadow-purple-500/40"
-                                    backgroundColor="#4C1D95"
-                                    lightColor="#F5F3FF"
+                                    className={cn(
+                                        "h-11 w-11 rounded-full p-0",
+                                        "bg-gradient-to-b from-slate-200/90 via-slate-500/95 to-slate-900",
+                                        "text-slate-900 dark:text-slate-50",
+                                        "shadow-[0_0_18px_rgba(148,163,184,0.55)]"
+                                    )}
+                                    backgroundColor="#020617"
+                                    lightColor="#E5E7EB"
+                                    borderWidth={1.5}
                                 >
                                     {isPlaying ? (
-                                        <Pause size={20} fill="white" />
+                                        <Pause size={16} fill="currentColor" />
                                     ) : (
-                                        <Play size={20} fill="white" className="ml-0.5" />
+                                        <Play size={16} fill="currentColor" className="ml-0.5" />
                                     )}
                                 </StarButton>
 

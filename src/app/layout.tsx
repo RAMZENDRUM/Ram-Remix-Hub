@@ -23,6 +23,8 @@ import { authOptions } from "@/lib/auth";
 
 import { GlobalSpotlight } from "@/components/ui/global-spotlight";
 
+import { RainBackground } from "@/components/ui/rain-background";
+
 export default async function RootLayout({
   children,
 }: Readonly<{
@@ -33,6 +35,19 @@ export default async function RootLayout({
   return (
     <html lang="en">
       <body className={`${inter.className} bg-black text-white relative`}>
+        <RainBackground
+          intensity={500}
+          speed={0.5}
+          angle={10}
+          color="rgba(174, 194, 224, 0.6)"
+          dropSize={{ min: 1, max: 2 }}
+          lightningEnabled={true}
+          lightningFrequency={8}
+          thunderEnabled={true}
+          thunderVolume={1}
+          thunderDelay={2}
+          className="fixed inset-0 pointer-events-none z-0"
+        />
         <GlobalSpotlight />
         <AnoAI />
         <div className="relative z-10">

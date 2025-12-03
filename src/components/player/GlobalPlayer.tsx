@@ -12,7 +12,7 @@ import { cn } from "@/lib/utils";
 import { useToast } from "@/context/ToastContext";
 import { formatTime } from "@/lib/formatTime";
 import { StarButton } from "@/components/ui/star-button";
-import { TrackInfoPanel } from "@/components/track-info-panel";
+import { TrackInfoOverlay } from "@/components/track-info-overlay";
 
 type IconButtonWithTooltipProps = {
     label: string;
@@ -466,28 +466,28 @@ export default function GlobalPlayer() {
                 )}
             </footer>
 
-            {/* Track Info Panel */}
-            <TrackInfoPanel
+            {/* Track Info Overlay */}
+            <TrackInfoOverlay
                 open={infoOpen}
                 onClose={() => setInfoOpen(false)}
-                songTitle={currentTrack?.title ?? ""}
-                artistName={currentTrack?.artist ?? ""}
-                albumArt={currentTrack?.coverImageUrl ?? null}
+                title={currentTrack?.title ?? ""}
+                artist={currentTrack?.artist ?? ""}
+                coverUrl={currentTrack?.coverImageUrl ?? null}
                 duration={duration}
                 currentTime={currentTime}
                 isPlaying={isPlaying}
+                isLiked={false} // Wire to real liked state if available
+                isShuffle={isShuffle}
+                isLoop={loopMode !== "off"}
+                volume={volume * 100}
                 onPlayPause={togglePlay}
                 onPrev={prevTrack}
                 onNext={nextTrack}
                 onSeek={handleSeek}
-                volume={volume * 100}
                 onVolumeChange={handleVolumeChange}
-                isLiked={false} // You might want to wire this to real liked state if available
                 onToggleLike={handleLike}
-                isRepeat={loopMode !== "off"}
-                onToggleRepeat={toggleLoopMode}
-                isShuffle={isShuffle}
                 onToggleShuffle={toggleShuffle}
+                onToggleLoop={toggleLoopMode}
             />
         </>
     );

@@ -27,6 +27,7 @@ export default function AdminDashboard() {
     const { pushToast } = useToast();
 
     const [tracks, setTracks] = useState<Track[]>([]);
+    const [editingTrackId, setEditingTrackId] = useState<string | null>(null);
     const [showUpload, setShowUpload] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
 
@@ -72,59 +73,6 @@ export default function AdminDashboard() {
 
     if (status === 'loading' || !session || session.user?.email !== 'ramzendrum@gmail.com') return null;
 
-    const handleUpload = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setIsUploading(true);
-
-        try {
-            const data = new FormData();
-            data.append('artist', formData.artist);
-            data.append('title', formData.title);
-            data.append('description', formData.description);
-            data.append('genre', formData.genre);
-            data.append('type', formData.type);
-            data.append('unlisted', String(formData.unlisted));
-
-            if (audioFile) {
-                data.append('audioFile', audioFile);
-            }
-
-            if (coverImageFile) {
-                data.append('coverImageFile', coverImageFile);
-            }
-
-            const res = await fetch('/api/admin/tracks', {
-                method: 'POST',
-                body: data,
-            });
-
-            if (!res.ok) {
-                const errData = await res.json();
-                throw new Error(errData.error || 'Upload failed');
-            }
-
-            pushToast("success", "Track uploaded successfully!");
-            setShowUpload(false);
-            // Reset form
-            setFormData({
-                artist: '',
-                title: '',
-                description: '',
-                genre: '',
-                type: 'Remix',
-                unlisted: false,
-            });
-            setAudioFile(null);
-            setCoverImageFile(null);
-            fetchTracks();
-
-        } catch (error: any) {
-            pushToast("error", error.message);
-        } finally {
-            setIsUploading(false);
-        }
-    };
-
     const onDeleteClick = (track: Track) => {
         setTrackToDelete(track);
         setConfirmOpen(true);
@@ -149,21 +97,110 @@ export default function AdminDashboard() {
         }
     };
 
+    const handleUpload = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setIsUploading(true);
+
+        try {
+            const data = new FormData();
+            data.append('artist', formData.artist);
+            data.append('title', formData.title);
+            data.append('description', formData.description);
+            data.append('genre', formData.genre);
+            data.append('type', formData.type);
+            data.append('unlisted', String(formData.unlisted));
+
+            if (audioFile) {
+                data.append('audioFile', audioFile);
+            }
+
+            if (coverImageFile) {
+                data.append('coverImageFile', coverImageFile);
+            }
+
+            let res;
+            if (editingTrackId) {
+                // Update existing track
+                res = await fetch(`/api/admin/tracks/${editingTrackId}`, {
+                    method: 'PUT',
+                    body: data,
+                });
+            } else {
+                // Create new track
+                res = await fetch('/api/admin/tracks', {
+                    method: 'POST',
+                    body: data,
+                });
+            }
+
+            if (!res.ok) {
+                const errData = await res.json();
+                throw new Error(errData.error || 'Operation failed');
+            }
+
+            pushToast("success", editingTrackId ? "Track updated successfully!" : "Track uploaded successfully!");
+            setShowUpload(false);
+            setEditingTrackId(null);
+            // Reset form
+            setFormData({
+                artist: '',
+                title: '',
+                description: '',
+                genre: '',
+                type: 'Remix',
+                unlisted: false,
+            });
+            setAudioFile(null);
+            setCoverImageFile(null);
+            fetchTracks();
+
+        } catch (error: any) {
+            pushToast("error", error.message);
+        } finally {
+            setIsUploading(false);
+        }
+    };
+
+    const onEditClick = (track: any) => {
+        setFormData({
+            artist: track.artist || '',
+            title: track.title,
+            description: track.description || '',
+            genre: track.genre || '',
+            type: track.type || 'Remix',
+            unlisted: track.isUnlisted,
+        });
+        setEditingTrackId(track.id);
+        setShowUpload(true);
+        // We don't pre-fill files as they are optional during update
+    };
+
+    // ... (existing delete logic)
+
     return (
         <div className="max-w-6xl mx-auto p-8">
-            <div className="flex justify-between items-center mb-8">
-                <h1 className="text-4xl font-bold text-white">Admin Dashboard</h1>
-            </div>
+            {/* ... (header) */}
 
             {showUpload ? (
                 <section className="mb-8 w-full max-w-4xl mx-auto rounded-3xl bg-neutral-900/80 border border-neutral-800/80 backdrop-blur-xl shadow-2xl shadow-black/50 px-6 py-5 md:px-8 md:py-7 space-y-6">
                     <div className="flex items-center justify-between">
                         <h2 className="text-xl md:text-2xl font-semibold text-white tracking-tight">
-                            Upload New Remix
+                            {editingTrackId ? 'Edit Track' : 'Upload New Remix'}
                         </h2>
                         <button
                             type="button"
-                            onClick={() => setShowUpload(false)}
+                            onClick={() => {
+                                setShowUpload(false);
+                                setEditingTrackId(null);
+                                setFormData({
+                                    artist: '',
+                                    title: '',
+                                    description: '',
+                                    genre: '',
+                                    type: 'Remix',
+                                    unlisted: false,
+                                });
+                            }}
                             className="inline-flex items-center rounded-full border border-neutral-600/70 bg-neutral-900/60 px-3 py-1.5 text-xs font-medium text-neutral-200 hover:border-neutral-300 hover:bg-neutral-800/80 transition-colors"
                         >
                             Cancel
@@ -171,6 +208,7 @@ export default function AdminDashboard() {
                     </div>
 
                     <form onSubmit={handleUpload} className="space-y-4">
+                        {/* ... (inputs same as before) */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5">
                             <label className="flex flex-col gap-1 text-xs font-medium text-neutral-300">
                                 <span>Artist (Required)</span>
@@ -249,11 +287,11 @@ export default function AdminDashboard() {
 
                         <div className="grid grid-cols-1 gap-4 md:gap-5">
                             <div className="flex items-center justify-between rounded-xl border border-neutral-700 bg-neutral-950/60 px-3 py-2 text-xs text-neutral-300">
-                                <span>Audio File (Required)</span>
+                                <span>Audio File {editingTrackId ? '(Optional - Upload to replace)' : '(Required)'}</span>
                                 <input
                                     type="file"
                                     accept="audio/*"
-                                    required
+                                    required={!editingTrackId}
                                     name="audioFile"
                                     onChange={e => setAudioFile(e.target.files?.[0] || null)}
                                     className="text-[11px] file:mr-2 file:rounded-lg file:border-0 file:bg-purple-600/90 file:px-2.5 file:py-1.5 file:text-xs file:font-medium file:text-white hover:file:bg-purple-500 cursor-pointer"
@@ -261,7 +299,7 @@ export default function AdminDashboard() {
                             </div>
 
                             <div className="flex items-center justify-between rounded-xl border border-neutral-700 bg-neutral-950/60 px-3 py-2 text-xs text-neutral-300">
-                                <span>Cover Image (Optional)</span>
+                                <span>Cover Image {editingTrackId ? '(Optional - Upload to replace)' : '(Optional)'}</span>
                                 <input
                                     type="file"
                                     accept="image/*"
@@ -277,7 +315,7 @@ export default function AdminDashboard() {
                             disabled={isUploading}
                             className="mt-4 w-full inline-flex items-center justify-center rounded-full border border-purple-500/70 bg-gradient-to-r from-purple-600 via-fuchsia-500 to-indigo-500 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-purple-900/40 transition-all hover:shadow-purple-600/70 hover:-translate-y-0.5 active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed"
                         >
-                            {isUploading ? 'Uploading...' : 'Upload Track'}
+                            {isUploading ? (editingTrackId ? 'Updating...' : 'Uploading...') : (editingTrackId ? 'Update Track' : 'Upload Track')}
                         </button>
                     </form>
                 </section>
@@ -289,7 +327,18 @@ export default function AdminDashboard() {
                     <h2 className="text-base font-semibold text-white">Uploaded Tracks</h2>
                     {!showUpload && (
                         <button
-                            onClick={() => setShowUpload(true)}
+                            onClick={() => {
+                                setShowUpload(true);
+                                setEditingTrackId(null);
+                                setFormData({
+                                    artist: '',
+                                    title: '',
+                                    description: '',
+                                    genre: '',
+                                    type: 'Remix',
+                                    unlisted: false,
+                                });
+                            }}
                             className="inline-flex items-center gap-2 rounded-full border border-purple-500/60 bg-gradient-to-r from-purple-600/80 via-fuchsia-500/80 to-indigo-500/80 px-4 py-2 text-xs md:text-sm font-medium text-white shadow-lg shadow-purple-900/40 transition-all hover:shadow-purple-600/60 hover:-translate-y-0.5 active:scale-95"
                         >
                             <span className="h-1.5 w-1.5 rounded-full bg-white/90 shadow-[0_0_12px_rgba(255,255,255,0.9)]" />
@@ -340,18 +389,27 @@ export default function AdminDashboard() {
                                     </div>
                                 </div>
 
-                                {/* Right side: delete button */}
-                                <button
-                                    onClick={() => onDeleteClick(track)}
-                                    className="inline-flex items-center gap-1.5 rounded-full border border-red-500/70 bg-red-600/80 px-3 py-1 text-xs font-semibold text-white shadow-md shadow-red-900/50 transition-all hover:bg-red-500 hover:shadow-red-500/80 active:scale-95"
-                                >
-                                    <Trash2 className="h-3.5 w-3.5" />
-                                    <span className="hidden sm:inline">Delete</span>
-                                </button>
+                                {/* Right side: buttons */}
+                                <div className="flex items-center gap-2">
+                                    <button
+                                        onClick={() => onEditClick(track)}
+                                        className="inline-flex items-center gap-1.5 rounded-full border border-blue-500/70 bg-blue-600/80 px-3 py-1 text-xs font-semibold text-white shadow-md shadow-blue-900/50 transition-all hover:bg-blue-500 hover:shadow-blue-500/80 active:scale-95"
+                                    >
+                                        <span className="hidden sm:inline">Edit</span>
+                                    </button>
+                                    <button
+                                        onClick={() => onDeleteClick(track)}
+                                        className="inline-flex items-center gap-1.5 rounded-full border border-red-500/70 bg-red-600/80 px-3 py-1 text-xs font-semibold text-white shadow-md shadow-red-900/50 transition-all hover:bg-red-500 hover:shadow-red-500/80 active:scale-95"
+                                    >
+                                        <Trash2 className="h-3.5 w-3.5" />
+                                        <span className="hidden sm:inline">Delete</span>
+                                    </button>
+                                </div>
                             </li>
                         ))}
                     </ul>
                 )}
+
             </div>
 
             <ConfirmDialog

@@ -39,9 +39,12 @@ export function Spotlight({
     const handleMouseMove = useCallback(
         (event: MouseEvent) => {
             if (!parentElement) return;
-            const { left, top } = parentElement.getBoundingClientRect();
-            mouseX.set(event.clientX - left);
-            mouseY.set(event.clientY - top);
+
+            requestAnimationFrame(() => {
+                const { left, top } = parentElement.getBoundingClientRect();
+                mouseX.set(event.clientX - left);
+                mouseY.set(event.clientY - top);
+            });
         },
         [mouseX, mouseY, parentElement]
     );

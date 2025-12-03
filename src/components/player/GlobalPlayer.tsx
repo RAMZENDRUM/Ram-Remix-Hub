@@ -165,7 +165,7 @@ export default function GlobalPlayer() {
             window.removeEventListener('click', handleInteraction);
             window.removeEventListener('keydown', handleInteraction);
         };
-    }, [setAnalyser, audioRef]);
+    }, [setAnalyser, audioRef, currentTrack]); // Added currentTrack dependency
 
     // Keyboard Listener for Spacebar Play/Pause
     useEffect(() => {
@@ -189,6 +189,9 @@ export default function GlobalPlayer() {
         if (!audioRef.current || !currentTrack) return;
 
         if (isPlaying) {
+            if (audioContextRef.current && audioContextRef.current.state === 'suspended') {
+                audioContextRef.current.resume();
+            }
             audioRef.current.play().catch(e => console.error("Play error:", e));
         } else {
             audioRef.current.pause();

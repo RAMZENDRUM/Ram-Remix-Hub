@@ -43,10 +43,9 @@ export default async function RootLayout({
           dropSize={{ min: 1, max: 2 }}
           lightningEnabled={true}
           lightningFrequency={8}
-          thunderEnabled={true}
           thunderVolume={1}
           thunderDelay={2}
-          className="fixed inset-0 pointer-events-none z-50"
+          className="fixed inset-0 pointer-events-none z-[-1]"
         />
         <GlobalSpotlight />
         <AnoAI />

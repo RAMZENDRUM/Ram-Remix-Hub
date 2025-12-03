@@ -33,8 +33,14 @@ const Navbar = () => {
                         <Link href="/" className={`${styles.navLink} ${isActive('/')}`}>
                             Home
                         </Link>
+                        <Link href="/releases" className={`${styles.navLink} ${isActive('/releases')}`}>
+                            Releases
+                        </Link>
                         <Link href="/playlists" className={`${styles.navLink} ${isActive('/playlists')}`}>
                             Playlists
+                        </Link>
+                        <Link href="/about" className={`${styles.navLink} ${isActive('/about')}`}>
+                            About
                         </Link>
                         {isAdmin && (
                             <Link href="/admin" className={`${styles.navLink} ${isActive('/admin')}`}>

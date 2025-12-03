@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { Instagram, User, Disc } from "lucide-react";
+import { Instagram, User, Disc, Copy } from "lucide-react";
 import { WavePath } from "@/components/ui/wave-path";
+import { useToast } from "@/context/ToastContext";
 
 // Manually adding Spotify icon since it might not be in all lucide versions or just to be safe
 const Spotify = ({ className }: { className?: string }) => (
@@ -28,6 +29,8 @@ const Spotify = ({ className }: { className?: string }) => (
 const currentYear = new Date().getFullYear();
 
 export function SiteFooter() {
+    const { pushToast } = useToast();
+
     return (
         <footer className="w-full bg-black py-12 md:py-16 mt-auto relative">
             <div className="absolute top-0 left-0 w-full flex justify-center -translate-y-1/2">
@@ -56,12 +59,17 @@ export function SiteFooter() {
                         <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 border-b border-neutral-900/50 pb-2">
                             <p className="flex items-center gap-2 text-sm text-neutral-400">
                                 <span className="text-neutral-500 w-16">Email:</span>
-                                <a
-                                    href="mailto:ramzendrum@gmail.com"
-                                    className="text-neutral-200 hover:text-purple-400 transition-colors"
+                                <button
+                                    onClick={() => {
+                                        navigator.clipboard.writeText("ramzendrum@gmail.com");
+                                        pushToast("success", "Email copied to clipboard");
+                                    }}
+                                    className="text-neutral-200 hover:text-purple-400 transition-colors flex items-center gap-2 group"
+                                    title="Click to copy"
                                 >
                                     ramzendrum@gmail.com
-                                </a>
+                                    <Copy className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                </button>
                             </p>
                             <Link
                                 href="/about"

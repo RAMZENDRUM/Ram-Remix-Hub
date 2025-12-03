@@ -6,7 +6,7 @@ import { usePlayer } from "@/context/PlayerContext";
 type EliteVisualizerProps = {
     coverUrl?: string;
     size?: number;
-    audioRef?: React.RefObject<HTMLAudioElement | null>; // Kept for interface compatibility
+    audioRef?: React.RefObject<HTMLAudioElement | null>;
 };
 
 const EliteVisualizer: React.FC<EliteVisualizerProps> = ({
@@ -17,182 +17,164 @@ const EliteVisualizer: React.FC<EliteVisualizerProps> = ({
 
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
     const frameRef = useRef<number | null>(null);
-    const imageRef = useRef<HTMLImageElement | null>(null);
-
-    // Load cover image
-    useEffect(() => {
-        if (coverUrl) {
-            const img = new Image();
-            img.crossOrigin = "anonymous";
-            img.src = coverUrl;
-            imageRef.current = img;
-        }
-    }, [coverUrl]);
 
     useEffect(() => {
         const canvas = canvasRef.current;
         if (!canvas) return;
 
         const dpr = window.devicePixelRatio || 1;
-        canvas.width = size * dpr;
-        canvas.height = size * dpr;
+        // Make canvas slightly larger to fit the perspective grid
+        const width = size * dpr;
+        const height = size * dpr;
+
+        canvas.width = width;
+        canvas.height = height;
 
         const ctx = canvas.getContext("2d");
         if (!ctx) return;
-        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        ctx.scale(dpr, dpr);
 
+        // Audio Data
         const bufferLength = analyser ? analyser.frequencyBinCount : 2048;
         const dataArray = new Uint8Array(bufferLength);
 
-        // Liquid Ring Config
-        const pointCount = 256; // resolution of the ring
-        const prevOffsets = new Array(pointCount).fill(0);
+        // Grid Config
+        const COLS = 20;
+        const ROWS = 20;
+        const GRID_SIZE = size * 1.5; // Larger than canvas to cover edges
+        const CELL_SIZE = GRID_SIZE / COLS;
 
-        const center = { x: size / 2, y: size / 2 };
-        const baseRadius = size * 0.32;   // where the ring sits
-        const maxOffset = size * 0.09;    // how far peaks can go
-        const innerImageRadius = size * 0.22;
+        // Animation State
+        let offsetZ = 0;
+        let time = 0;
 
-        let simOffset = 0;
+        // Simple pseudo-noise function for "flowing" effect
+        const noise = (x: number, z: number, t: number) => {
+            return Math.sin(x * 0.1 + t) * Math.cos(z * 0.1 + t) * 10;
+        };
 
         const renderFrame = () => {
-            let hasData = false;
+            // 1. Get Audio
+            let audioLevel = 0;
             if (analyser && isPlaying) {
                 analyser.getByteFrequencyData(dataArray);
-                if (dataArray.some(v => v > 0)) hasData = true;
-            }
-
-            // Calculate average volume for breathing effect
-            let volSum = 0;
-            if (hasData) {
-                // Only check the first ~half of bins where most energy is
-                const checkLen = Math.floor(bufferLength / 2);
-                for (let i = 0; i < checkLen; i++) volSum += dataArray[i];
-                volSum = volSum / checkLen / 255;
+                // Calculate average bass/mid energy
+                let sum = 0;
+                const range = 50; // Check first 50 bins (bass/low-mids)
+                for (let i = 0; i < range; i++) sum += dataArray[i];
+                audioLevel = sum / range / 255; // 0-1
             } else if (isPlaying) {
-                // Sim volume
-                simOffset += 0.05;
-                volSum = (Math.sin(simOffset) + 1) * 0.15;
+                // Sim
+                audioLevel = 0.3 + Math.sin(time * 2) * 0.1;
             }
-            const avgVol = volSum; // 0-1
 
+            // Update State
+            time += 0.05;
+            offsetZ -= 1.5; // Move grid towards camera
+            if (offsetZ < -CELL_SIZE) offsetZ += CELL_SIZE; // Loop
+
+            // Clear
             ctx.clearRect(0, 0, size, size);
 
-            // 1. Background Soft Glow
-            const glowRadius = baseRadius + maxOffset * (0.4 + avgVol * 0.8);
-            const glowGrad = ctx.createRadialGradient(
-                center.x, center.y, innerImageRadius * 0.3,
-                center.x, center.y, glowRadius
-            );
-            glowGrad.addColorStop(0, "rgba(59,130,246,0.35)");  // Blue
-            glowGrad.addColorStop(0.5, "rgba(129,140,248,0.4)"); // Indigo
-            glowGrad.addColorStop(1, "rgba(8,47,73,0)");         // Fade
+            // Background (Dark Void)
+            ctx.fillStyle = "rgba(0,0,0,0)"; // Transparent
+            ctx.fillRect(0, 0, size, size);
 
-            ctx.fillStyle = glowGrad;
+            // Setup 3D Projection
+            const fov = 250;
+            const viewX = size / 2;
+            const viewY = size / 3; // Look slightly down
+
+            // Dynamic Color
+            const r = Math.floor(50 + audioLevel * 100);
+            const g = Math.floor(50);
+            const b = Math.floor(200 + audioLevel * 55);
+            const color = `rgb(${r},${g},${b})`;
+
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 1.5;
+            ctx.shadowBlur = 10 + audioLevel * 20;
+            ctx.shadowColor = color;
+
+            // Draw Grid
             ctx.beginPath();
-            ctx.arc(center.x, center.y, glowRadius, 0, Math.PI * 2);
-            ctx.fill();
 
-            // 2. Center Cover Image
-            const img = imageRef.current;
-            if (img && img.complete) {
-                ctx.save();
-                ctx.beginPath();
-                ctx.arc(center.x, center.y, innerImageRadius, 0, Math.PI * 2);
-                ctx.closePath();
-                ctx.clip();
-                ctx.drawImage(img, center.x - innerImageRadius, center.y - innerImageRadius, innerImageRadius * 2, innerImageRadius * 2);
-                ctx.restore();
-            } else {
-                ctx.beginPath();
-                ctx.arc(center.x, center.y, innerImageRadius, 0, Math.PI * 2);
-                ctx.fillStyle = "#171717";
-                ctx.fill();
-            }
+            // We draw lines by iterating grid points
+            // To center the grid, we offset X and Z
+            const startX = -GRID_SIZE / 2;
+            const startZ = 0; // Start slightly in front
 
-            // 3. Liquid Ring Calculation
-            const points: { x: number; y: number }[] = [];
-            for (let i = 0; i < pointCount; i++) {
-                let raw = 0;
+            // Function to project 3D point to 2D
+            const project = (x: number, y: number, z: number) => {
+                const scale = fov / (fov + z);
+                const x2d = viewX + x * scale;
+                const y2d = viewY + y * scale;
+                return { x: x2d, y: y2d };
+            };
 
-                if (hasData) {
-                    // Map FFT -> Radial Offsets
-                    // We use the lower 80% of the spectrum
-                    const freqIndex = Math.floor((i / pointCount) * bufferLength * 0.8);
-                    raw = dataArray[freqIndex] / 255;
-                } else if (isPlaying) {
-                    // Simulation
-                    const angle = (i / pointCount) * Math.PI * 2;
-                    raw = (Math.sin(angle * 4 + simOffset) * 0.5 + 0.5) * 0.4;
-                }
+            // Horizontal Lines (along X)
+            for (let z = 0; z < ROWS; z++) {
+                const zPos = startZ + z * CELL_SIZE + offsetZ;
+                // Don't draw if too close or behind camera
+                if (zPos < -50) continue;
 
-                let shaped = Math.pow(raw, 1.8); // Emphasise peaks
+                let first = true;
+                for (let x = 0; x <= COLS; x++) {
+                    const xPos = startX + x * CELL_SIZE;
 
-                // Smooth with previous value
-                const prev = prevOffsets[i] || 0;
-                const smoothed = prev + (shaped - prev) * 0.45;
-                prevOffsets[i] = smoothed;
+                    // Height displacement
+                    // Base wave + Audio kick
+                    const dist = Math.sqrt(xPos * xPos + zPos * zPos);
+                    const wave = noise(x, z, time);
+                    const audioKick = audioLevel * 80 * Math.exp(-dist * 0.005); // Higher in center
 
-                const offset = maxOffset * smoothed;
-                const radius = baseRadius + offset;
+                    const yPos = 100 + wave + audioKick; // 100 is base floor level (below viewY)
 
-                const angle = (i / pointCount) * Math.PI * 2 - Math.PI / 2;
-                const x = center.x + radius * Math.cos(angle);
-                const y = center.y + radius * Math.sin(angle);
-                points.push({ x, y });
-            }
+                    const p = project(xPos, yPos, zPos);
 
-            // Close the ring
-            if (points.length > 0) {
-                points.push(points[0], points[1], points[2]);
-            }
-
-            // Ring Gradient (Purple <-> Blue)
-            const ringGrad = ctx.createLinearGradient(
-                center.x - baseRadius, center.y - baseRadius,
-                center.x + baseRadius, center.y + baseRadius
-            );
-            ringGrad.addColorStop(0, "#22d3ee");  // Cyan-Blue
-            ringGrad.addColorStop(0.5, "#6366f1"); // Indigo
-            ringGrad.addColorStop(1, "#a855f7");   // Purple
-
-            // 4. Draw Outer Soft Ring
-            ctx.save();
-            ctx.lineJoin = "round";
-            ctx.lineCap = "round";
-            ctx.beginPath();
-            if (points.length > 0) {
-                ctx.moveTo(points[0].x, points[0].y);
-                for (let i = 1; i < points.length; i++) {
-                    ctx.lineTo(points[i].x, points[i].y);
+                    if (first) {
+                        ctx.moveTo(p.x, p.y);
+                        first = false;
+                    } else {
+                        ctx.lineTo(p.x, p.y);
+                    }
                 }
             }
-            ctx.closePath();
-            ctx.strokeStyle = ringGrad;
-            ctx.lineWidth = 14;
-            ctx.shadowColor = "rgba(96,165,250,0.8)";
-            ctx.shadowBlur = 28;
-            ctx.globalAlpha = 0.65 + avgVol * 0.3;
+
+            // Vertical Lines (along Z)
+            for (let x = 0; x <= COLS; x++) {
+                const xPos = startX + x * CELL_SIZE;
+
+                let first = true;
+                for (let z = 0; z < ROWS; z++) {
+                    const zPos = startZ + z * CELL_SIZE + offsetZ;
+                    if (zPos < -50) continue;
+
+                    const dist = Math.sqrt(xPos * xPos + zPos * zPos);
+                    const wave = noise(x, z, time);
+                    const audioKick = audioLevel * 80 * Math.exp(-dist * 0.005);
+
+                    const yPos = 100 + wave + audioKick;
+
+                    const p = project(xPos, yPos, zPos);
+
+                    if (first) {
+                        ctx.moveTo(p.x, p.y);
+                        first = false;
+                    } else {
+                        ctx.lineTo(p.x, p.y);
+                    }
+                }
+            }
             ctx.stroke();
-            ctx.restore();
 
-            // 5. Draw Inner Sharper Ring
-            ctx.save();
-            ctx.lineJoin = "round";
-            ctx.lineCap = "round";
-            ctx.beginPath();
-            if (points.length > 0) {
-                ctx.moveTo(points[0].x, points[0].y);
-                for (let i = 1; i < points.length; i++) {
-                    ctx.lineTo(points[i].x, points[i].y);
-                }
+            // Optional: Draw Cover Art floating above?
+            // The user wanted the "WaelYasmina" visualizer which is usually just the mesh.
+            // But we have coverUrl. Let's render it floating in the middle if provided.
+            if (coverUrl) {
+                // ... logic to draw image if needed, but maybe clean wireframe is better.
+                // Let's skip image for now to match the "wireframe" aesthetic strictly.
             }
-            ctx.closePath();
-            ctx.strokeStyle = "rgba(191, 219, 254, 0.9)";
-            ctx.lineWidth = 3;
-            ctx.globalAlpha = 0.9;
-            ctx.stroke();
-            ctx.restore();
 
             frameRef.current = requestAnimationFrame(renderFrame);
         };
@@ -202,17 +184,17 @@ const EliteVisualizer: React.FC<EliteVisualizerProps> = ({
         return () => {
             if (frameRef.current) cancelAnimationFrame(frameRef.current);
         };
-    }, [analyser, isPlaying, size, coverUrl]);
+    }, [analyser, isPlaying, size]);
 
     return (
-        <div className="relative flex items-center justify-center bg-transparent">
+        <div className="relative flex items-center justify-center bg-transparent overflow-hidden rounded-xl">
             <canvas
                 ref={canvasRef}
                 style={{
                     width: size,
                     height: size,
                     display: "block",
-                    background: "transparent",
+                    background: "radial-gradient(circle at center, rgba(20,20,30,0) 0%, rgba(0,0,0,0) 100%)",
                 }}
             />
         </div>

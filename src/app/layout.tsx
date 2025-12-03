@@ -21,6 +21,8 @@ const inter = Inter({ subsets: ["latin"] });
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 
+import { GlobalSpotlight } from "@/components/ui/global-spotlight";
+
 export default async function RootLayout({
   children,
 }: Readonly<{
@@ -31,6 +33,7 @@ export default async function RootLayout({
   return (
     <html lang="en">
       <body className={`${inter.className} bg-black text-white relative`}>
+        <GlobalSpotlight />
         <AnoAI />
         <div className="relative z-10">
           <Providers>

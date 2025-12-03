@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import Image from 'next/image';
-import { Trash2 } from 'lucide-react';
+import { Trash2, Music, Image as ImageIcon } from 'lucide-react';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { useToast } from '@/context/ToastContext';
 import { CustomDropdown } from '@/components/ui/CustomDropdown';
@@ -244,9 +244,12 @@ export default function AdminDashboard() {
             {/* ... (header) */}
 
             {showUpload ? (
-                <section className="mb-8 w-full max-w-4xl mx-auto rounded-3xl bg-neutral-900/80 border border-neutral-800/80 backdrop-blur-xl shadow-2xl shadow-black/50 px-6 py-5 md:px-8 md:py-7 space-y-6">
-                    <div className="flex items-center justify-between">
-                        <h2 className="text-xl md:text-2xl font-semibold text-white tracking-tight">
+                <section className="mb-12 w-full max-w-5xl mx-auto rounded-[2rem] bg-neutral-900/60 border border-white/10 backdrop-blur-2xl shadow-2xl shadow-purple-900/20 px-8 py-10 md:px-12 md:py-12 space-y-8 relative overflow-hidden">
+                    {/* Decorative background glow */}
+                    <div className="absolute top-0 right-0 w-96 h-96 bg-purple-600/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3 pointer-events-none" />
+
+                    <div className="flex items-center justify-between relative z-10">
+                        <h2 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-white via-purple-200 to-purple-400 bg-clip-text text-transparent tracking-tight">
                             {editingTrackId ? 'Edit Track' : 'Upload New Remix'}
                         </h2>
                         <button
@@ -263,53 +266,52 @@ export default function AdminDashboard() {
                                     unlisted: false,
                                 });
                             }}
-                            className="inline-flex items-center rounded-full border border-neutral-600/70 bg-neutral-900/60 px-3 py-1.5 text-xs font-medium text-neutral-200 hover:border-neutral-300 hover:bg-neutral-800/80 transition-colors"
+                            className="inline-flex items-center rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs font-medium text-neutral-300 hover:bg-white/10 hover:text-white transition-colors backdrop-blur-md"
                         >
                             Cancel
                         </button>
                     </div>
 
-                    <form onSubmit={handleUpload} className="space-y-4">
-                        {/* ... (inputs same as before) */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5">
-                            <label className="flex flex-col gap-1 text-xs font-medium text-neutral-300">
-                                <span>Artist (Required)</span>
+                    <form onSubmit={handleUpload} className="space-y-6 relative z-10">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <label className="flex flex-col gap-2 text-xs font-semibold text-neutral-400 uppercase tracking-wider">
+                                <span>Artist Name</span>
                                 <input
                                     type="text"
                                     required
-                                    className="rounded-xl border border-neutral-700 bg-neutral-950/60 px-3 py-2 text-sm text-neutral-100 outline-none focus:border-purple-400 focus:ring-1 focus:ring-purple-500/70 transition-all placeholder:text-neutral-500"
-                                    placeholder="Artist name (Required)"
+                                    className="rounded-xl border border-white/10 bg-black/40 px-4 py-3.5 text-sm text-white outline-none focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/50 transition-all placeholder:text-neutral-600 shadow-inner"
+                                    placeholder="e.g. Ram"
                                     value={formData.artist}
                                     onChange={e => setFormData({ ...formData, artist: e.target.value })}
                                 />
                             </label>
-                            <label className="flex flex-col gap-1 text-xs font-medium text-neutral-300">
-                                <span>Title (Required)</span>
+                            <label className="flex flex-col gap-2 text-xs font-semibold text-neutral-400 uppercase tracking-wider">
+                                <span>Track Title</span>
                                 <input
                                     type="text"
                                     required
-                                    className="rounded-xl border border-neutral-700 bg-neutral-950/60 px-3 py-2 text-sm text-neutral-100 outline-none focus:border-purple-400 focus:ring-1 focus:ring-purple-500/70 transition-all placeholder:text-neutral-500"
-                                    placeholder="Title (Required)"
+                                    className="rounded-xl border border-white/10 bg-black/40 px-4 py-3.5 text-sm text-white outline-none focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/50 transition-all placeholder:text-neutral-600 shadow-inner"
+                                    placeholder="e.g. Summer Vibes Remix"
                                     value={formData.title}
                                     onChange={e => setFormData({ ...formData, title: e.target.value })}
                                 />
                             </label>
                         </div>
 
-                        <label className="flex flex-col gap-1 text-xs font-medium text-neutral-300">
-                            <span>Short Description (Required)</span>
+                        <label className="flex flex-col gap-2 text-xs font-semibold text-neutral-400 uppercase tracking-wider">
+                            <span>Description</span>
                             <input
                                 type="text"
                                 required
-                                className="rounded-xl border border-neutral-700 bg-neutral-950/60 px-3 py-2 text-sm text-neutral-100 outline-none focus:border-purple-400 focus:ring-1 focus:ring-purple-500/70 transition-all placeholder:text-neutral-500"
-                                placeholder="Short Description (Required)"
+                                className="rounded-xl border border-white/10 bg-black/40 px-4 py-3.5 text-sm text-white outline-none focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/50 transition-all placeholder:text-neutral-600 shadow-inner"
+                                placeholder="Short description of the track..."
                                 value={formData.description}
                                 onChange={e => setFormData({ ...formData, description: e.target.value })}
                                 maxLength={500}
                             />
                         </label>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <CustomDropdown
                                 label="Genre"
                                 name="genre"
@@ -336,55 +338,94 @@ export default function AdminDashboard() {
                             />
                         </div>
 
-                        <div className="flex items-center gap-2">
-                            <input
-                                type="checkbox"
-                                checked={formData.unlisted}
-                                onChange={e => setFormData({ ...formData, unlisted: e.target.checked })}
-                                id="unlisted"
-                                className="rounded border-neutral-700 bg-neutral-950/60 text-purple-600 focus:ring-purple-500/70"
-                            />
-                            <label htmlFor="unlisted" className="text-sm text-neutral-300">Unlisted</label>
+                        <div className="flex items-center justify-between py-2">
+                            <div className="flex items-center gap-3">
+                                <div
+                                    className={`w-12 h-6 rounded-full p-1 cursor-pointer transition-colors duration-300 ${formData.unlisted ? 'bg-purple-600' : 'bg-neutral-700'}`}
+                                    onClick={() => setFormData({ ...formData, unlisted: !formData.unlisted })}
+                                >
+                                    <div className={`w-4 h-4 rounded-full bg-white shadow-md transform transition-transform duration-300 ${formData.unlisted ? 'translate-x-6' : 'translate-x-0'}`} />
+                                </div>
+                                <span className="text-sm font-medium text-neutral-300">Unlisted Track</span>
+                            </div>
                         </div>
 
-                        <div className="grid grid-cols-1 gap-4 md:gap-5">
-                            <div className="flex items-center justify-between rounded-xl border border-neutral-700 bg-neutral-950/60 px-3 py-2 text-xs text-neutral-300">
-                                <span>Audio File {editingTrackId ? '(Optional - Upload to replace)' : '(Required)'}</span>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="group relative rounded-2xl border border-dashed border-neutral-700 bg-black/20 hover:bg-black/40 hover:border-purple-500/50 transition-all p-6 text-center cursor-pointer">
                                 <input
                                     type="file"
                                     accept="audio/*"
                                     required={!editingTrackId}
                                     name="audioFile"
                                     onChange={e => setAudioFile(e.target.files?.[0] || null)}
-                                    className="text-[11px] file:mr-2 file:rounded-lg file:border-0 file:bg-purple-600/90 file:px-2.5 file:py-1.5 file:text-xs file:font-medium file:text-white hover:file:bg-purple-500 cursor-pointer"
+                                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                                 />
+                                <div className="flex flex-col items-center gap-2 pointer-events-none">
+                                    <div className="p-3 rounded-full bg-purple-500/10 text-purple-400 group-hover:scale-110 transition-transform">
+                                        <Music size={24} />
+                                    </div>
+                                    <span className="text-sm font-medium text-neutral-300">
+                                        {audioFile ? audioFile.name : (editingTrackId ? 'Replace Audio (Optional)' : 'Upload Audio File')}
+                                    </span>
+                                    {!audioFile && <span className="text-xs text-neutral-500">MP3, WAV, FLAC up to 50MB</span>}
+                                </div>
                             </div>
 
-                            <div className="flex items-center justify-between rounded-xl border border-neutral-700 bg-neutral-950/60 px-3 py-2 text-xs text-neutral-300">
-                                <span>Cover Image {editingTrackId ? '(Optional - Upload to replace)' : '(Optional)'}</span>
+                            <div className="group relative rounded-2xl border border-dashed border-neutral-700 bg-black/20 hover:bg-black/40 hover:border-purple-500/50 transition-all p-6 text-center cursor-pointer">
                                 <input
                                     type="file"
                                     accept="image/*"
                                     name="coverImageFile"
                                     onChange={e => setCoverImageFile(e.target.files?.[0] || null)}
-                                    className="text-[11px] file:mr-2 file:rounded-lg file:border-0 file:bg-purple-600/90 file:px-2.5 file:py-1.5 file:text-xs file:font-medium file:text-white hover:file:bg-purple-500 cursor-pointer"
+                                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                                 />
+                                <div className="flex flex-col items-center gap-2 pointer-events-none">
+                                    <div className="p-3 rounded-full bg-purple-500/10 text-purple-400 group-hover:scale-110 transition-transform">
+                                        <ImageIcon size={24} />
+                                    </div>
+                                    <span className="text-sm font-medium text-neutral-300">
+                                        {coverImageFile ? coverImageFile.name : (editingTrackId ? 'Replace Cover (Optional)' : 'Upload Cover Art')}
+                                    </span>
+                                    {!coverImageFile && <span className="text-xs text-neutral-500">JPG, PNG up to 5MB</span>}
+                                </div>
                             </div>
                         </div>
 
-                        <button
-                            type="submit"
-                            disabled={isUploading}
-                            className="mt-4 w-full inline-flex items-center justify-center rounded-full border border-purple-500/70 bg-gradient-to-r from-purple-600 via-fuchsia-500 to-indigo-500 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-purple-900/40 transition-all hover:shadow-purple-600/70 hover:-translate-y-0.5 active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed"
-                        >
-                            {isUploading ? (editingTrackId ? 'Updating...' : 'Uploading...') : (editingTrackId ? 'Update Track' : 'Upload Track')}
-                        </button>
+                        <div className="pt-4">
+                            <button
+                                type="submit"
+                                disabled={isUploading}
+                                className="w-full relative overflow-hidden rounded-full bg-gradient-to-r from-purple-600 via-fuchsia-600 to-indigo-600 p-[1px] group disabled:opacity-70 disabled:cursor-not-allowed"
+                            >
+                                <div className="relative rounded-full bg-black/10 backdrop-blur-sm px-8 py-4 transition-all group-hover:bg-transparent">
+                                    <span className="relative flex items-center justify-center gap-2 text-sm font-bold uppercase tracking-widest text-white">
+                                        {isUploading ? (
+                                            <>
+                                                <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                                {editingTrackId ? 'Updating...' : 'Uploading...'}
+                                            </>
+                                        ) : (
+                                            <>
+                                                {editingTrackId ? 'Update Track' : 'Upload Track'}
+                                            </>
+                                        )}
+                                    </span>
+                                </div>
+                            </button>
+
+                            {/* Progress Bar Placeholder */}
+                            {isUploading && (
+                                <div className="mt-4 h-1 w-full bg-neutral-800 rounded-full overflow-hidden">
+                                    <div className="h-full bg-gradient-to-r from-purple-500 to-indigo-500 animate-progress w-full origin-left scale-x-0" style={{ animation: 'progress 2s infinite linear' }} />
+                                </div>
+                            )}
+                        </div>
                     </form>
                 </section>
             ) : null}
 
             {/* Modern Glassmorphism Panel */}
-            <div className="mt-10 w-full max-w-4xl mx-auto rounded-3xl bg-neutral-900/80 border border-neutral-800/80 shadow-xl shadow-black/40 backdrop-blur-xl p-6 space-y-6">
+            <div className="mt-10 w-full max-w-5xl mx-auto rounded-[2.5rem] bg-neutral-900/60 border border-white/5 shadow-2xl shadow-black/40 backdrop-blur-2xl p-8 md:p-10 space-y-8">
                 <div className="flex items-center justify-between">
                     <h2 className="text-base font-semibold text-white">Uploaded Tracks</h2>
                     {!showUpload && (

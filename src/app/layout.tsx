@@ -36,16 +36,16 @@ export default async function RootLayout({
     <html lang="en">
       <body className={`${inter.className} bg-black text-white relative`}>
         <RainBackground
-          intensity={50}
+          intensity={500}
           speed={0.2}
-          angle={0}
-          color="rgba(255, 255, 255, 0.1)"
+          angle={10}
+          color="rgba(174, 194, 224, 0.6)"
           dropSize={{ min: 1, max: 2 }}
-          lightningEnabled={false}
-          lightningFrequency={0}
-          thunderEnabled={false}
-          thunderVolume={0}
-          thunderDelay={0}
+          lightningEnabled={true}
+          lightningFrequency={8}
+          thunderEnabled={true}
+          thunderVolume={1}
+          thunderDelay={2}
           className="fixed inset-0 pointer-events-none z-[-1]"
         />
         <GlobalSpotlight />

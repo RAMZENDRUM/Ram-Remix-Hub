@@ -1,8 +1,6 @@
-"use client";
-
 import { Suspense } from "react";
+import RobotSection from "@/components/RobotSection";
 import LoginCard from "@/components/auth/LoginCard";
-import HolographicWave from "@/components/ui/holographic-wave";
 
 export default function AuthPage() {
     return (
@@ -14,16 +12,16 @@ export default function AuthPage() {
                 </h1>
             </div>
 
-            <div className="flex-1 flex flex-col lg:flex-row items-center justify-center gap-8 lg:gap-4 px-4 lg:px-12 relative z-10 max-w-7xl mx-auto w-full mt-20 lg:mt-0">
-                {/* Left: Visualizer Section */}
-                <div className="relative w-full lg:w-[55%] aspect-video lg:aspect-auto lg:h-[500px] flex justify-center lg:justify-end">
-                    <div className="w-full h-full max-w-2xl">
-                        <HolographicWave />
+            <div className="flex-1 flex flex-col lg:flex-row items-center justify-center gap-0 lg:gap-4 px-4 lg:px-12 relative z-10 max-w-7xl mx-auto w-full">
+                {/* Left: Robot Section */}
+                <div className="relative w-full lg:w-[55%] aspect-video lg:aspect-auto lg:h-[600px] flex justify-end">
+                    <div className="w-full h-full">
+                        <RobotSection />
                     </div>
                 </div>
 
                 {/* Right: Login Card */}
-                <div className="w-full lg:w-[35%] flex justify-center lg:justify-start lg:-ml-8">
+                <div className="w-full lg:w-[35%] flex justify-start lg:-ml-12">
                     <Suspense fallback={<div>Loading...</div>}>
                         <LoginCard />
                     </Suspense>

@@ -1,4 +1,3 @@
-```javascript
 'use client';
 
 import React, { useEffect, useState } from 'react';
@@ -176,7 +175,7 @@ export default function Profile() {
                 <section className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     {stats.map((stat, idx) => (
                         <div key={idx} className="bg-neutral-900/40 backdrop-blur-xl border border-white/5 rounded-2xl p-5 flex flex-col items-center md:items-start hover:bg-white/5 transition-colors group">
-                            <div className={`p - 3 rounded - xl bg - white / 5 mb - 3 group - hover: scale - 110 transition - transform ${ stat.color } `}>
+                            <div className={`p-3 rounded-xl bg-white/5 mb-3 group-hover:scale-110 transition-transform ${stat.color}`}>
                                 <stat.icon size={20} />
                             </div>
                             <span className="text-2xl md:text-3xl font-bold text-white">{stat.value}</span>
@@ -267,7 +266,7 @@ export default function Profile() {
                             <div className="h-32 w-full flex items-end justify-between gap-1">
                                 {[40, 65, 45, 80, 55, 90, 70, 85, 60, 75, 50, 95].map((h, i) => (
                                     <div key={i} className="w-full bg-purple-500/20 rounded-t-sm hover:bg-purple-500/40 transition-colors relative group">
-                                        <div style={{ height: `${ h }% ` }} className="absolute bottom-0 w-full bg-gradient-to-t from-purple-600 to-blue-500 rounded-t-sm" />
+                                        <div style={{ height: `${h}%` }} className="absolute bottom-0 w-full bg-gradient-to-t from-purple-600 to-blue-500 rounded-t-sm" />
                                     </div>
                                 ))}
                             </div>
@@ -339,17 +338,16 @@ export default function Profile() {
                             <button
                                 key={lang.code}
                                 onClick={() => setLanguage(lang.code)}
-                                className={`relative flex items - center justify - between px - 6 py - 5 rounded - 2xl border transition - all duration - 300 group ${
-    language === lang.code
-        ? 'bg-gradient-to-r from-[#C69AFF] to-[#6F5BFF] border-transparent shadow-xl shadow-purple-900/30 scale-[1.02]'
-        : 'bg-black/40 border-white/10 hover:bg-white/5 hover:border-white/20'
-} `}
+                                className={`relative flex items-center justify-between px-6 py-5 rounded-2xl border transition-all duration-300 group ${language === lang.code
+                                        ? 'bg-gradient-to-r from-[#C69AFF] to-[#6F5BFF] border-transparent shadow-xl shadow-purple-900/30 scale-[1.02]'
+                                        : 'bg-black/40 border-white/10 hover:bg-white/5 hover:border-white/20'
+                                    }`}
                             >
                                 <div className="flex flex-col items-start">
-                                    <span className={`font - bold text - lg ${ language === lang.code ? 'text-white' : 'text-white/90' } `}>
+                                    <span className={`font-bold text-lg ${language === lang.code ? 'text-white' : 'text-white/90'}`}>
                                         {lang.name}
                                     </span>
-                                    <span className={`text - xs font - medium uppercase tracking - wider mt - 1 ${ language === lang.code ? 'text-white/80' : 'text-white/40' } `}>
+                                    <span className={`text-xs font-medium uppercase tracking-wider mt-1 ${language === lang.code ? 'text-white/80' : 'text-white/40'}`}>
                                         {lang.label}
                                     </span>
                                 </div>
@@ -379,7 +377,7 @@ export default function Profile() {
 
             {/* 1. Listener Header */}
             <section className="relative rounded-[2.5rem] bg-neutral-900/60 border border-white/10 backdrop-blur-2xl p-8 md:p-10 overflow-hidden">
-                 <div className="relative z-10 flex flex-col md:flex-row items-center md:items-start gap-8">
+                <div className="relative z-10 flex flex-col md:flex-row items-center md:items-start gap-8">
                     {/* Avatar */}
                     <div className="relative">
                         <div className="w-24 h-24 rounded-full p-1 bg-gradient-to-br from-purple-500 to-blue-500">
@@ -514,17 +512,16 @@ export default function Profile() {
                         <button
                             key={lang.code}
                             onClick={() => setLanguage(lang.code)}
-                            className={`relative flex items - center justify - between px - 6 py - 5 rounded - 2xl border transition - all duration - 300 group ${
-    language === lang.code
-        ? 'bg-gradient-to-r from-[#C69AFF] to-[#6F5BFF] border-transparent shadow-xl shadow-purple-900/30 scale-[1.02]'
-        : 'bg-black/40 border-white/10 hover:bg-white/5 hover:border-white/20'
-} `}
+                            className={`relative flex items-center justify-between px-6 py-5 rounded-2xl border transition-all duration-300 group ${language === lang.code
+                                    ? 'bg-gradient-to-r from-[#C69AFF] to-[#6F5BFF] border-transparent shadow-xl shadow-purple-900/30 scale-[1.02]'
+                                    : 'bg-black/40 border-white/10 hover:bg-white/5 hover:border-white/20'
+                                }`}
                         >
                             <div className="flex flex-col items-start">
-                                <span className={`font - bold text - lg ${ language === lang.code ? 'text-white' : 'text-white/90' } `}>
+                                <span className={`font-bold text-lg ${language === lang.code ? 'text-white' : 'text-white/90'}`}>
                                     {lang.name}
                                 </span>
-                                <span className={`text - xs font - medium uppercase tracking - wider mt - 1 ${ language === lang.code ? 'text-white/80' : 'text-white/40' } `}>
+                                <span className={`text-xs font-medium uppercase tracking-wider mt-1 ${language === lang.code ? 'text-white/80' : 'text-white/40'}`}>
                                     {lang.label}
                                 </span>
                             </div>
@@ -545,4 +542,3 @@ export default function Profile() {
         </div>
     );
 }
-```

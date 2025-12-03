@@ -84,9 +84,9 @@ export default function Home() {
       />
 
       {/* Main content container */}
-      <div className="mx-auto flex max-w-6xl flex-col gap-12 px-6 pt-24 pb-16 md:flex-row md:items-center md:justify-between">
+      <section className="relative max-w-6xl mx-auto px-6 lg:px-12 pt-20 pb-10 grid gap-10 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)] items-center">
         {/* LEFT: Hero text */}
-        <section className="max-w-xl space-y-6">
+        <div className="space-y-6">
           {user && (
             <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-1 text-xs font-medium text-white/70">
               <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
@@ -127,45 +127,31 @@ export default function Home() {
             </div>
             <span>Listeners are streaming your latest remix right now.</span>
           </div>
-        </section>
+        </div>
 
-        {/* RIGHT: Circular Visualizer */}
-        <section className="relative flex flex-col items-center justify-center w-full max-w-md">
+        {/* RIGHT: Visualizer & Now Playing */}
+        <div className="flex flex-col items-center gap-4">
           {currentTrack ? (
-            <div className="relative flex flex-col items-center gap-4 animate-in fade-in zoom-in-95 duration-700">
-              {/* Visualizer */}
-              <div className="circular-visualizer relative z-10 scale-100 md:scale-110 transition-transform duration-500 hover:scale-115">
+            <>
+              <div className="circular-visualizer relative">
                 <EliteVisualizer
                   coverUrl={currentTrack.coverImageUrl}
                   size={300}
                 />
               </div>
 
-              {/* Track Info (Floating below) */}
-              <div className="mt-2 text-center space-y-1 z-20 bg-black/40 backdrop-blur-xl px-6 py-3 rounded-2xl border border-white/5 shadow-2xl">
-                <h3 className="text-lg font-bold text-white tracking-tight truncate max-w-[250px]">
-                  {currentTrack.title}
-                </h3>
-                <p className="text-xs text-purple-300 font-medium uppercase tracking-wider">
-                  {currentTrack.artist || 'Ram Remix Hub'}
-                </p>
-                <div className="flex items-center justify-center gap-2 mt-2">
-                  {isPlaying ? (
-                    <span className="flex h-2 w-2 relative">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                      <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
-                    </span>
-                  ) : (
-                    <span className="h-2 w-2 rounded-full bg-neutral-600"></span>
-                  )}
-                  <span className="text-[10px] uppercase tracking-widest text-neutral-400">
-                    {isPlaying ? 'Now Playing' : 'Paused'}
-                  </span>
+              <div className="min-w-[220px] rounded-2xl bg-slate-900/80 border border-slate-700/60 px-4 py-3 flex items-center justify-between shadow-[0_0_40px_rgba(56,189,248,0.35)]">
+                <div>
+                  <p className="text-xs uppercase tracking-[0.15em] text-slate-400">Now Playing</p>
+                  <p className="text-sm font-semibold text-slate-50 truncate max-w-[150px]">{currentTrack.title}</p>
+                  <p className="text-xs text-slate-400 truncate max-w-[150px]">{currentTrack.artist || 'Ram'}</p>
+                </div>
+                <div className="h-9 w-9 rounded-full bg-gradient-to-tr from-emerald-400 to-sky-400 flex items-center justify-center text-slate-950 text-[10px] font-semibold flex-shrink-0">
+                  LIVE
                 </div>
               </div>
-            </div>
+            </>
           ) : (
-            // Fallback when no track is selected
             <div className="relative flex items-center justify-center h-[300px] w-[300px] rounded-full border border-dashed border-neutral-800 bg-neutral-900/30">
               <div className="text-center text-neutral-500">
                 <p className="text-sm font-medium">Select a track</p>
@@ -173,8 +159,8 @@ export default function Home() {
               </div>
             </div>
           )}
-        </section>
-      </div>
+        </div>
+      </section>
 
       {/* Existing Sections (New Remixes & Top Rated) */}
       <div className={styles.container}>

@@ -163,23 +163,40 @@ export default function RemixDetail({ params }: { params: Promise<{ id: string }
                     <h1 className={styles.title}>{track.title}</h1>
                     <p className={styles.artist}>{track.artist || 'Ram'}</p>
 
-                    <div className={styles.actions}>
+                    <div className="mt-6 flex items-center gap-4">
                         <StarButton
                             onClick={handlePlay}
-                            className="h-11 px-6 rounded-full bg-black/90 text-sm"
+                            className="h-11 px-7 rounded-full bg-gradient-to-r from-violet-500 via-fuchsia-500 to-sky-400 text-sm text-slate-900 font-medium shadow-[0_0_30px_rgba(129,140,248,0.55)]"
                             backgroundColor="#020617"
                             lightColor="#F9FAFB"
                             borderWidth={1}
                         >
-                            <Play className="h-4 w-4 mr-2 fill-current" />
-                            <span>{remixDetail.play}</span>
+                            <Play className="mr-2 h-4 w-4" />
+                            {remixDetail.play}
                         </StarButton>
-                        <FavoriteButton trackId={track.id} initialIsFavorite={isLiked} />
-                        <button className={styles.actionButton} aria-label="Download" onClick={handleDownload}>
-                            <Download size={20} />
+
+                        <button
+                            onClick={handleLike}
+                            className={`flex h-10 w-10 items-center justify-center rounded-full bg-slate-900/80 border border-slate-700/60 hover:bg-fuchsia-600/20 hover:border-fuchsia-400/60 ${isLiked ? "text-fuchsia-400" : ""}`}
+                            aria-label="Toggle favourite"
+                        >
+                            <Heart className={`h-4 w-4 ${isLiked ? "fill-current" : ""}`} />
                         </button>
-                        <button className={styles.actionButton} aria-label="Share" onClick={handleShare}>
-                            <Share2 size={20} />
+
+                        <button
+                            onClick={handleDownload}
+                            className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-900/80 border border-slate-700/60 hover:bg-sky-500/15 hover:border-sky-400/60"
+                            aria-label="Download track"
+                        >
+                            <Download className="h-4 w-4" />
+                        </button>
+
+                        <button
+                            onClick={handleShare}
+                            className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-900/80 border border-slate-700/60 hover:bg-emerald-500/15 hover:border-emerald-400/60"
+                            aria-label="Share track"
+                        >
+                            <Share2 className="h-4 w-4" />
                         </button>
                     </div>
                 </div>

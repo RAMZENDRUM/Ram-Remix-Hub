@@ -7,6 +7,8 @@ import uiText from '@/data/ui-text.json';
 import { usePlayer } from '@/context/PlayerContext';
 import { RatingModal } from '@/components/ui/RatingModal';
 import { useToast } from '@/context/ToastContext';
+import { StarButton } from '@/components/ui/star-button';
+import { FavoriteButton } from '@/components/ui/favorite-button';
 
 interface Track {
     id: string;
@@ -162,16 +164,17 @@ export default function RemixDetail({ params }: { params: Promise<{ id: string }
                     <p className={styles.artist}>{track.artist || 'Ram'}</p>
 
                     <div className={styles.actions}>
-                        <button
-                            className={styles.playButton}
+                        <StarButton
                             onClick={handlePlay}
+                            className="h-11 px-6 rounded-full bg-black/90 text-sm"
+                            backgroundColor="#020617"
+                            lightColor="#F9FAFB"
+                            borderWidth={1}
                         >
-                            <Play size={24} fill="white" />
-                            {remixDetail.play}
-                        </button>
-                        <button className={styles.actionButton} aria-label="Like" onClick={handleLike}>
-                            <Heart size={20} fill={isLiked ? "#a855f7" : "none"} color={isLiked ? "#a855f7" : "currentColor"} />
-                        </button>
+                            <Play className="h-4 w-4 mr-2" />
+                            <span>{remixDetail.play}</span>
+                        </StarButton>
+                        <FavoriteButton trackId={track.id} initialIsFavorite={isLiked} />
                         <button className={styles.actionButton} aria-label="Download" onClick={handleDownload}>
                             <Download size={20} />
                         </button>

@@ -71,20 +71,19 @@ const EliteVisualizer: React.FC<EliteVisualizerProps> = ({
             ctx.fillStyle = "rgba(168, 85, 255, 0.05)";
             ctx.fill();
 
-            // Draw Cover Art (Circular) - Added back to keep context
-            ctx.save();
-            ctx.beginPath();
-            ctx.arc(centerX, centerY, baseRadius, 0, Math.PI * 2);
-            ctx.closePath();
-            ctx.clip();
-
-            if (imageRef.current && imageRef.current.complete) {
-                ctx.drawImage(imageRef.current, centerX - baseRadius, centerY - baseRadius, baseRadius * 2, baseRadius * 2);
-            } else {
-                ctx.fillStyle = "#1a1a1a";
-                ctx.fill();
-            }
-            ctx.restore();
+            // Draw Cover Art (Circular) - Removed as per request
+            // ctx.save();
+            // ctx.beginPath();
+            // ctx.arc(centerX, centerY, baseRadius, 0, Math.PI * 2);
+            // ctx.closePath();
+            // ctx.clip();
+            // if (imageRef.current && imageRef.current.complete) {
+            //     ctx.drawImage(imageRef.current, centerX - baseRadius, centerY - baseRadius, baseRadius * 2, baseRadius * 2);
+            // } else {
+            //     ctx.fillStyle = "#1a1a1a";
+            //     ctx.fill();
+            // }
+            // ctx.restore();
 
 
             const numRings = 3;

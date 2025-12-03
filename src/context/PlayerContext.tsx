@@ -18,6 +18,8 @@ interface PlayerContextType {
     currentTime: number;
     duration: number;
     queue: Track[];
+    analyser: AnalyserNode | null;
+    setAnalyser: (analyser: AnalyserNode | null) => void;
     playTrack: (track: Track) => void;
     playQueue: (tracks: Track[], startIndex?: number) => void;
     nextTrack: () => void;
@@ -38,6 +40,7 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
 
     const [queue, setQueue] = useState<Track[]>([]);
     const [currentIndex, setCurrentIndex] = useState(-1);
+    const [analyser, setAnalyser] = useState<AnalyserNode | null>(null);
 
     const playTrack = (track: Track) => {
         // If playing a single track not in queue, make a queue of 1
@@ -100,6 +103,8 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
             currentTime,
             duration,
             queue,
+            analyser,
+            setAnalyser,
             playTrack,
             playQueue,
             nextTrack,

@@ -104,10 +104,13 @@ export default function GlobalPlayer() {
         setDuration,
         nextTrack,
         prevTrack,
-        queue
+        queue,
+        setAnalyser
     } = usePlayer();
     const { pushToast } = useToast();
     const audioRef = useRef<HTMLAudioElement>(null);
+    const audioContextRef = useRef<AudioContext | null>(null);
+    const sourceRef = useRef<MediaElementAudioSourceNode | null>(null);
 
     const [volume, setVolume] = useState(1);
     const [isMuted, setIsMuted] = useState(false);
@@ -118,6 +121,44 @@ export default function GlobalPlayer() {
     const [queueOpen, setQueueOpen] = useState(false);
     const [infoOpen, setInfoOpen] = useState(false);
     const [miniMode, setMiniMode] = useState(false);
+
+    // Initialize Audio Context and Analyser
+    useEffect(() => {
+        if (!audioRef.current) return;
+
+        const initAudioContext = () => {
+            if (!audioContextRef.current) {
+                const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
+                audioContextRef.current = new AudioContext();
+
+                const analyser = audioContextRef.current.createAnalyser();
+                analyser.fftSize = 256;
+
+                sourceRef.current = audioContextRef.current.createMediaElementSource(audioRef.current);
+                sourceRef.current.connect(analyser);
+                analyser.connect(audioContextRef.current.destination);
+
+                setAnalyser(analyser);
+            } else if (audioContextRef.current.state === 'suspended') {
+                audioContextRef.current.resume();
+            }
+        };
+
+        // Initialize on user interaction to comply with autoplay policies
+        const handleInteraction = () => {
+            initAudioContext();
+            window.removeEventListener('click', handleInteraction);
+            window.removeEventListener('keydown', handleInteraction);
+        };
+
+        window.addEventListener('click', handleInteraction);
+        window.addEventListener('keydown', handleInteraction);
+
+        return () => {
+            window.removeEventListener('click', handleInteraction);
+            window.removeEventListener('keydown', handleInteraction);
+        };
+    }, [setAnalyser]);
 
     // Keyboard Listener for Spacebar Play/Pause
     useEffect(() => {
@@ -261,6 +302,7 @@ export default function GlobalPlayer() {
                 <audio
                     ref={audioRef}
                     src={currentTrack.audioUrl}
+                    crossOrigin="anonymous"
                     onLoadedMetadata={handleLoadedMetadata}
                     onTimeUpdate={handleTimeUpdate}
                     onEnded={handleEnded}

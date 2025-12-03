@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import Hero from '@/components/Hero';
 import RemixCard from '@/components/RemixCard';
 import styles from './page.module.css';
@@ -16,6 +16,81 @@ interface Track {
 
 import { usePlayer } from "@/context/PlayerContext";
 import { formatTime } from "@/lib/formatTime";
+
+const AudioVisualizer = () => {
+  const { analyser, isPlaying } = usePlayer();
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  useEffect(() => {
+    if (!canvasRef.current) return;
+
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    let animationId: number;
+    const bufferLength = analyser ? analyser.frequencyBinCount : 0;
+    const dataArray = new Uint8Array(bufferLength);
+
+    const draw = () => {
+      animationId = requestAnimationFrame(draw);
+
+      const width = canvas.width;
+      const height = canvas.height;
+
+      ctx.clearRect(0, 0, width, height);
+
+      if (!analyser || !isPlaying) {
+        // Draw idle state (flat line or gentle wave)
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
+        for (let i = 0; i < 40; i++) {
+          const barHeight = 4;
+          const x = (i * (width / 40));
+          ctx.fillRect(x, height - barHeight - 30, (width / 40) - 2, barHeight);
+        }
+        return;
+      }
+
+      analyser.getByteFrequencyData(dataArray);
+
+      const barWidth = (width / 40); // Draw 40 bars
+      let x = 0;
+
+      // We want to skip the very low frequencies and very high ones to focus on the "beat"
+      // The FFT size is 256, so bin count is 128.
+      // We'll step through the data to get 40 bars.
+      const step = Math.floor(dataArray.length / 50);
+
+      for (let i = 0; i < 40; i++) {
+        const dataIndex = i * step;
+        const value = dataArray[dataIndex] || 0;
+
+        // Scale value to height
+        const barHeight = (value / 255) * height;
+
+        // Gradient color based on height
+        const gradient = ctx.createLinearGradient(0, height - barHeight, 0, height);
+        gradient.addColorStop(0, '#38bdf8'); // sky-400
+        gradient.addColorStop(1, '#ffffff');
+
+        ctx.fillStyle = gradient;
+
+        // Draw rounded rect manually or just rect
+        ctx.fillRect(x, height - barHeight, barWidth - 2, barHeight);
+
+        x += barWidth;
+      }
+    };
+
+    draw();
+
+    return () => {
+      cancelAnimationFrame(animationId);
+    };
+  }, [analyser, isPlaying]);
+
+  return <canvas ref={canvasRef} width={300} height={80} className="w-full h-full" />;
+};
 
 export default function Home() {
   const { home } = uiText;
@@ -132,19 +207,9 @@ export default function Home() {
             </div>
           </header>
 
-          {/* Fake equalizer / waveform */}
-          <div className="flex h-20 items-end gap-[3px] overflow-hidden">
-            {Array.from({ length: 40 }).map((_, i) => (
-              <span
-                key={i}
-                className="w-[3px] rounded-full bg-gradient-to-t from-white/5 via-sky-400/80 to-white"
-                style={{
-                  height: `${30 + (Math.sin(i * 0.5) + 1) * 20}px`,
-                  animation: `bounceBar 1.4s ease-in-out ${i * 0.03}s infinite`,
-                  animationPlayState: isPlaying ? 'running' : 'paused',
-                }}
-              />
-            ))}
+          {/* Real-time Audio Visualizer */}
+          <div className="flex h-20 items-end justify-center gap-[2px] overflow-hidden w-full px-4">
+            <AudioVisualizer />
           </div>
 
           <div className="space-y-3 text-xs text-white/70">

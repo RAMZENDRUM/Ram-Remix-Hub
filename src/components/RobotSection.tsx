@@ -28,9 +28,10 @@ export default function RobotSection() {
 
     function onLoad(spline: Application) {
         splineRef.current = spline;
-        const robot = spline.findObjectByName('Robot') || spline.findObjectByName('Group');
-        if (robot) {
-            robotRef.current = robot;
+        // Try to find the Head specifically, otherwise fall back to Robot or Group
+        const obj = spline.findObjectByName('Head') || spline.findObjectByName('Robot') || spline.findObjectByName('Group');
+        if (obj) {
+            robotRef.current = obj;
         }
     }
 
@@ -41,34 +42,27 @@ export default function RobotSection() {
         let targetY = 0;
         let currentX = 0;
         let currentY = 0;
-        let isIdle = false;
 
         const handleMouseMove = (e: MouseEvent) => {
+            // Normalize to -1 to 1
             targetX = (e.clientX / window.innerWidth) * 2 - 1;
             targetY = (e.clientY / window.innerHeight) * 2 - 1;
-            isIdle = false;
         };
 
         const updateRobot = () => {
             if (robotRef.current) {
-                // Linear interpolation for smoothness (Lerp)
-                // This also helps performance by not snapping instantly
-                const ease = 0.1;
+                const ease = 0.08; // Slightly smoother
                 const diffX = targetX - currentX;
                 const diffY = targetY - currentY;
 
-                // If movement is tiny, stop updating to save CPU/GPU
-                if (Math.abs(diffX) < 0.001 && Math.abs(diffY) < 0.001) {
-                    if (!isIdle) {
-                        isIdle = true;
-                    }
-                } else {
-                    currentX += diffX * ease;
-                    currentY += diffY * ease;
+                currentX += diffX * ease;
+                currentY += diffY * ease;
 
-                    robotRef.current.rotation.y = currentX * 0.5;
-                    robotRef.current.rotation.x = -currentY * 0.3;
-                }
+                // Map -1..1 to rotation range
+                // Y axis (left/right): +/- 15 degrees (~0.26 rad)
+                // X axis (up/down): +/- 10 degrees (~0.17 rad)
+                robotRef.current.rotation.y = currentX * 0.26;
+                robotRef.current.rotation.x = -currentY * 0.17;
             }
             requestRef.current = requestAnimationFrame(updateRobot);
         };

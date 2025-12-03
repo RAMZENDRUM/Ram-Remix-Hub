@@ -9,6 +9,7 @@ import { useSession } from 'next-auth/react';
 import EliteVisualizer from '@/components/EliteVisualizer';
 import { usePlayer } from "@/context/PlayerContext";
 import { formatTime } from "@/lib/formatTime";
+import { WavePath } from '@/components/ui/wave-path';
 
 interface Track {
   id: string;
@@ -228,6 +229,10 @@ export default function Home() {
           )}
         </section>
       </div>
-    </main>
+
+      <div className="flex justify-center items-center w-full py-20">
+        <WavePath />
+      </div>
+    </main >
   );
 }

@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState } from 'react';
 import { Play, Music, Disc, Heart, Zap } from 'lucide-react';
 import Image from 'next/image';
@@ -39,8 +41,8 @@ export default function Playlists() {
                                 key={tab}
                                 onClick={() => setActiveTab(tab)}
                                 className={`px-5 py-2 rounded-full text-sm font-medium transition-all duration-300 ${activeTab === tab
-                                        ? 'bg-purple-600 text-white shadow-lg shadow-purple-900/40'
-                                        : 'text-neutral-400 hover:text-white hover:bg-white/5'
+                                    ? 'bg-purple-600 text-white shadow-lg shadow-purple-900/40'
+                                    : 'text-neutral-400 hover:text-white hover:bg-white/5'
                                     }`}
                             >
                                 {tab}

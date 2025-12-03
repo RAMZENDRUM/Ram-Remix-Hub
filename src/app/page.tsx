@@ -140,14 +140,35 @@ export default function Home() {
                 />
               </div>
 
-              <div className="min-w-[220px] rounded-2xl bg-slate-900/80 border border-slate-700/60 px-4 py-3 flex items-center justify-between shadow-[0_0_40px_rgba(56,189,248,0.35)]">
-                <div>
-                  <p className="text-xs uppercase tracking-[0.15em] text-slate-400">Now Playing</p>
-                  <p className="text-sm font-semibold text-slate-50 truncate max-w-[150px]">{currentTrack.title}</p>
-                  <p className="text-xs text-slate-400 truncate max-w-[150px]">{currentTrack.artist || 'Ram'}</p>
+              <div className="min-w-[260px] rounded-2xl bg-slate-900/80 border border-slate-800/80 px-5 py-4 shadow-[0_0_40px_rgba(56,189,248,0.28)] backdrop-blur">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="space-y-1">
+                    <p className="text-[10px] uppercase tracking-[0.22em] text-slate-400">
+                      Now Playing
+                    </p>
+                    <p className="text-sm font-semibold text-slate-50">
+                      {currentTrack?.title ?? "—"}
+                    </p>
+                    <p className="text-xs text-slate-400">
+                      {currentTrack?.artist ?? ""}
+                    </p>
+                  </div>
+
+                  {/* Small subtle status pill, NO 'LIVE' text */}
+                  <div className="mt-[2px] flex items-center rounded-full border border-slate-700/70 bg-slate-900/80 px-2 py-[2px]">
+                    <span className="mr-1 h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.9)]" />
+                    <span className="text-[10px] font-medium tracking-[0.18em] text-slate-300">
+                      ACTIVE
+                    </span>
+                  </div>
                 </div>
-                <div className="h-9 w-9 rounded-full bg-gradient-to-tr from-emerald-400 to-sky-400 flex items-center justify-center text-slate-950 text-[10px] font-semibold flex-shrink-0">
-                  LIVE
+
+                {/* Progress line under text (optional) */}
+                <div className="mt-3 h-[2px] w-full rounded-full bg-slate-800">
+                  <div
+                    className="h-full rounded-full bg-gradient-to-r from-violet-500 via-fuchsia-500 to-sky-400"
+                    style={{ width: progress + "%" }} // 0–100
+                  />
                 </div>
               </div>
             </>

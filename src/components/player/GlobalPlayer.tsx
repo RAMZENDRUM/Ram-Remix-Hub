@@ -107,7 +107,11 @@ export default function GlobalPlayer() {
         prevTrack,
         queue,
         setAnalyser,
-        audioRef // Use shared ref
+        audioRef, // Use shared ref
+        isShuffle,
+        toggleShuffle,
+        loopMode,
+        toggleLoopMode
     } = usePlayer();
     const { pushToast } = useToast();
 
@@ -117,8 +121,7 @@ export default function GlobalPlayer() {
 
     const [volume, setVolume] = useState(1);
     const [isMuted, setIsMuted] = useState(false);
-    const [isShuffling, setIsShuffling] = useState(false);
-    const [repeatMode, setRepeatMode] = useState<"off" | "one" | "all">("off");
+    // Removed local shuffle/repeat state
 
     // New states for right-side buttons
     const [queueOpen, setQueueOpen] = useState(false);
@@ -225,20 +228,6 @@ export default function GlobalPlayer() {
         }
     };
 
-    const handleEnded = () => {
-        if (repeatMode === "one") {
-            if (audioRef.current) {
-                audioRef.current.currentTime = 0;
-                audioRef.current.play();
-            }
-        } else if (repeatMode === "all") {
-            nextTrack();
-        } else {
-            // Standard behavior: go to next track. If end of queue, nextTrack handles stopping.
-            nextTrack();
-        }
-    };
-
     const handleSeek = (value: number) => {
         if (!audioRef.current) return;
         audioRef.current.currentTime = value;
@@ -258,12 +247,6 @@ export default function GlobalPlayer() {
         const newMuted = !isMuted;
         audioRef.current.muted = newMuted;
         setIsMuted(newMuted);
-    };
-
-    const toggleRepeat = () => {
-        const modes: ("off" | "one" | "all")[] = ["off", "all", "one"];
-        const nextIndex = (modes.indexOf(repeatMode) + 1) % modes.length;
-        setRepeatMode(modes[nextIndex]);
     };
 
     // Action Handlers
@@ -316,7 +299,7 @@ export default function GlobalPlayer() {
                     crossOrigin="anonymous"
                     onLoadedMetadata={handleLoadedMetadata}
                     onTimeUpdate={handleTimeUpdate}
-                    onEnded={handleEnded}
+                // onEnded removed, handled in context
                 />
 
                 <div className="mx-auto flex max-w-6xl items-center gap-4 px-4 py-2 md:py-3">
@@ -363,8 +346,8 @@ export default function GlobalPlayer() {
                         {!miniMode && (
                             <div className="flex items-center gap-4">
                                 <button
-                                    onClick={() => setIsShuffling(!isShuffling)}
-                                    className={`p-1.5 rounded-full transition-colors ${isShuffling ? 'text-purple-400 bg-purple-500/10' : 'text-neutral-400 hover:text-white hover:bg-neutral-800'}`}
+                                    onClick={toggleShuffle}
+                                    className={`p-1.5 rounded-full transition-colors ${isShuffle ? 'text-purple-400 bg-purple-500/10' : 'text-neutral-400 hover:text-white hover:bg-neutral-800'}`}
                                 >
                                     <Shuffle size={16} />
                                 </button>
@@ -399,11 +382,11 @@ export default function GlobalPlayer() {
                                 </button>
 
                                 <button
-                                    onClick={toggleRepeat}
-                                    className={`p-1.5 rounded-full transition-colors ${repeatMode !== 'off' ? 'text-purple-400 bg-purple-500/10' : 'text-neutral-400 hover:text-white hover:bg-neutral-800'}`}
+                                    onClick={toggleLoopMode}
+                                    className={`p-1.5 rounded-full transition-colors relative ${loopMode !== 'off' ? 'text-purple-400 bg-purple-500/10' : 'text-neutral-400 hover:text-white hover:bg-neutral-800'}`}
                                 >
                                     <Repeat size={16} />
-                                    {repeatMode === 'one' && <span className="absolute text-[8px] font-bold top-1 right-1">1</span>}
+                                    {loopMode === 'track' && <span className="absolute text-[8px] font-bold top-1 right-1">1</span>}
                                 </button>
                             </div>
                         )}

@@ -9,6 +9,7 @@ import { RatingModal } from '@/components/ui/RatingModal';
 import { useToast } from '@/context/ToastContext';
 import { StarButton } from '@/components/ui/star-button';
 import { FavoriteButton } from '@/components/ui/favorite-button';
+import { cn } from '@/lib/utils';
 
 interface Track {
     id: string;
@@ -166,13 +167,18 @@ export default function RemixDetail({ params }: { params: Promise<{ id: string }
                     <div className="mt-6 flex items-center gap-4">
                         <StarButton
                             onClick={handlePlay}
-                            className="h-11 px-7 rounded-full bg-gradient-to-r from-violet-500 via-fuchsia-500 to-sky-400 text-sm text-slate-900 font-medium shadow-[0_0_30px_rgba(129,140,248,0.55)]"
+                            className={cn(
+                                "h-11 px-7 rounded-full inline-flex items-center justify-center gap-2",
+                                "py-0 leading-none",
+                                "bg-gradient-to-r from-violet-500 via-fuchsia-500 to-sky-400",
+                                "text-sm font-medium text-slate-900 shadow-[0_0_30px_rgba(129,140,248,0.55)]"
+                            )}
                             backgroundColor="#020617"
                             lightColor="#F9FAFB"
                             borderWidth={1}
                         >
-                            <Play className="mr-2 h-4 w-4" />
-                            {remixDetail.play}
+                            <Play className="h-4 w-4" />
+                            <span>{remixDetail.play}</span>
                         </StarButton>
 
                         <button

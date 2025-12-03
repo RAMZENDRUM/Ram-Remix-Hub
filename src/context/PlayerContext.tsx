@@ -17,7 +17,11 @@ interface PlayerContextType {
     isPlaying: boolean;
     currentTime: number;
     duration: number;
+    queue: Track[];
     playTrack: (track: Track) => void;
+    playQueue: (tracks: Track[], startIndex?: number) => void;
+    nextTrack: () => void;
+    prevTrack: () => void;
     togglePlay: () => void;
     setIsPlaying: (isPlaying: boolean) => void;
     setCurrentTime: (time: number) => void;
@@ -32,9 +36,57 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
     const [currentTime, setCurrentTime] = useState(0);
     const [duration, setDuration] = useState(0);
 
+    const [queue, setQueue] = useState<Track[]>([]);
+    const [currentIndex, setCurrentIndex] = useState(-1);
+
     const playTrack = (track: Track) => {
+        // If playing a single track not in queue, make a queue of 1
+        setQueue([track]);
+        setCurrentIndex(0);
         setCurrentTrack(track);
         setIsPlaying(true);
+    };
+
+    const playQueue = (tracks: Track[], startIndex = 0) => {
+        setQueue(tracks);
+        setCurrentIndex(startIndex);
+        setCurrentTrack(tracks[startIndex]);
+        setIsPlaying(true);
+    };
+
+    const nextTrack = () => {
+        if (queue.length === 0 || currentIndex === -1) return;
+
+        const nextIndex = currentIndex + 1;
+        if (nextIndex < queue.length) {
+            setCurrentIndex(nextIndex);
+            setCurrentTrack(queue[nextIndex]);
+            setIsPlaying(true);
+        } else {
+            // End of queue
+            setIsPlaying(false);
+            setCurrentTime(0);
+        }
+    };
+
+    const prevTrack = () => {
+        if (queue.length === 0 || currentIndex === -1) return;
+
+        // If currently playing more than 3 seconds, restart track
+        if (currentTime > 3) {
+            setCurrentTime(0);
+            return;
+        }
+
+        const prevIndex = currentIndex - 1;
+        if (prevIndex >= 0) {
+            setCurrentIndex(prevIndex);
+            setCurrentTrack(queue[prevIndex]);
+            setIsPlaying(true);
+        } else {
+            // Start of queue, just restart
+            setCurrentTime(0);
+        }
     };
 
     const togglePlay = () => {
@@ -47,7 +99,11 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
             isPlaying,
             currentTime,
             duration,
+            queue,
             playTrack,
+            playQueue,
+            nextTrack,
+            prevTrack,
             togglePlay,
             setIsPlaying,
             setCurrentTime,

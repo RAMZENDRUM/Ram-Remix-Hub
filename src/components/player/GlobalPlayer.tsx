@@ -101,7 +101,10 @@ export default function GlobalPlayer() {
         currentTime,
         duration,
         setCurrentTime,
-        setDuration
+        setDuration,
+        nextTrack,
+        prevTrack,
+        queue
     } = usePlayer();
     const { pushToast } = useToast();
     const audioRef = useRef<HTMLAudioElement>(null);
@@ -176,9 +179,11 @@ export default function GlobalPlayer() {
                 audioRef.current.currentTime = 0;
                 audioRef.current.play();
             }
+        } else if (repeatMode === "all") {
+            nextTrack();
         } else {
-            setIsPlaying(false);
-            // TODO: Implement next track logic here when queue is available
+            // Standard behavior: go to next track. If end of queue, nextTrack handles stopping.
+            nextTrack();
         }
     };
 
@@ -311,7 +316,10 @@ export default function GlobalPlayer() {
                                     <Shuffle size={16} />
                                 </button>
 
-                                <button className="text-neutral-300 hover:text-white transition-colors active:scale-95">
+                                <button
+                                    onClick={prevTrack}
+                                    className="text-neutral-300 hover:text-white transition-colors active:scale-95"
+                                >
                                     <SkipBack size={20} fill="currentColor" />
                                 </button>
 
@@ -322,7 +330,10 @@ export default function GlobalPlayer() {
                                     {isPlaying ? <Pause size={20} fill="white" /> : <Play size={20} fill="white" className="ml-0.5" />}
                                 </button>
 
-                                <button className="text-neutral-300 hover:text-white transition-colors active:scale-95">
+                                <button
+                                    onClick={nextTrack}
+                                    className="text-neutral-300 hover:text-white transition-colors active:scale-95"
+                                >
                                     <SkipForward size={20} fill="currentColor" />
                                 </button>
 

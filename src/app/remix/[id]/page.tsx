@@ -32,8 +32,9 @@ interface Review {
 export default function RemixDetail({ params }: { params: Promise<{ id: string }> }) {
     const { id } = use(params);
     const { remixDetail } = uiText;
-    const { playTrack } = usePlayer();
+    const { playQueue } = usePlayer();
     const [track, setTrack] = useState<Track | null>(null);
+    const [relatedTracks, setRelatedTracks] = useState<Track[]>([]);
     const [loading, setLoading] = useState(true);
 
     // Rating State
@@ -50,6 +51,15 @@ export default function RemixDetail({ params }: { params: Promise<{ id: string }
             if (trackRes.ok) {
                 const data = await trackRes.json();
                 setTrack(data);
+            }
+
+            // Fetch Related Tracks (just fetch all for now and filter)
+            const allTracksRes = await fetch('/api/tracks');
+            if (allTracksRes.ok) {
+                const allTracks = await allTracksRes.json();
+                // Filter out current track and take top 10
+                const others = allTracks.filter((t: Track) => t.id !== id).slice(0, 10);
+                setRelatedTracks(others);
             }
 
             // Fetch Ratings
@@ -121,6 +131,15 @@ export default function RemixDetail({ params }: { params: Promise<{ id: string }
         }
     };
 
+    const handlePlay = () => {
+        if (!track) return;
+
+        // Create a queue starting with this track, followed by related tracks
+        const queue = [track, ...relatedTracks];
+
+        playQueue(queue, 0);
+    };
+
     if (loading) return <div className="text-center py-20 text-neutral-400">Loading...</div>;
     if (!track) return <div className="text-center py-20 text-neutral-400">Track not found</div>;
 
@@ -145,14 +164,7 @@ export default function RemixDetail({ params }: { params: Promise<{ id: string }
                     <div className={styles.actions}>
                         <button
                             className={styles.playButton}
-                            onClick={() => playTrack({
-                                id: track.id,
-                                title: track.title,
-                                artist: track.artist || 'Ram',
-                                coverImageUrl: track.coverImageUrl,
-                                audioUrl: track.audioUrl,
-                                genre: track.genre
-                            })}
+                            onClick={handlePlay}
                         >
                             <Play size={24} fill="white" />
                             {remixDetail.play}

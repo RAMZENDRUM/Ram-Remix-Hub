@@ -6,6 +6,9 @@ import RemixCard from '@/components/RemixCard';
 import styles from './page.module.css';
 import uiText from '@/data/ui-text.json';
 import { useSession } from 'next-auth/react';
+import CircularSpectrumVisualizer from '@/components/CircularSpectrumVisualizer';
+import { usePlayer } from "@/context/PlayerContext";
+import { formatTime } from "@/lib/formatTime";
 
 interface Track {
   id: string;
@@ -14,196 +17,26 @@ interface Track {
   isUnlisted: boolean;
 }
 
-import { usePlayer } from "@/context/PlayerContext";
-import { formatTime } from "@/lib/formatTime";
-
-const AudioVisualizer = () => {
-  const { analyser, isPlaying } = usePlayer();
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const previousDataRef = useRef<number[]>([]);
-
-  useEffect(() => {
-    if (!canvasRef.current) return;
-
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    let animationId: number;
-    // Increase FFT size for better resolution (must be power of 2)
-    // 2048 = 1024 frequency bins.
-    // Sample rate is usually 44.1kHz.
-    // Bin width ≈ 44100 / 2048 ≈ 21.5 Hz per bin.
-    if (analyser) analyser.fftSize = 2048;
-
-    const bufferLength = analyser ? analyser.frequencyBinCount : 1024;
-    const dataArray = new Uint8Array(bufferLength);
-
-    const BAR_COUNT = 40;
-    if (previousDataRef.current.length !== BAR_COUNT) {
-      previousDataRef.current = new Array(BAR_COUNT).fill(0);
-    }
-
-    // Linear Interpolation
-    const lerp = (start: number, end: number, factor: number) => {
-      return start + (end - start) * factor;
-    };
-
-    let simOffset = 0;
-
-    const draw = () => {
-      animationId = requestAnimationFrame(draw);
-
-      const width = canvas.width;
-      const height = canvas.height;
-
-      ctx.clearRect(0, 0, width, height);
-
-      let hasData = false;
-      if (analyser && isPlaying) {
-        analyser.getByteFrequencyData(dataArray);
-        if (dataArray.some(v => v > 0)) hasData = true;
-      }
-
-      // --- FREQUENCY MAPPING LOGIC ---
-      // We want 40 bars.
-      // Bass (20-150Hz) -> Bins 1-7 (approx)
-      // Low Mids (150-600Hz) -> Bins 8-28
-      // Mids (600-2kHz) -> Bins 29-93
-      // Highs (2k-20kHz) -> Bins 94+
-
-      // We will distribute these logarithmically or manually to the 40 bars.
-      // Center bars = Bass. Outer bars = Highs.
-
-      const targetValues = new Array(BAR_COUNT).fill(0);
-
-      if (hasData) {
-        // Map frequency bins to bars.
-        // We'll use a logarithmic scale to give more width to low frequencies.
-
-        for (let i = 0; i < BAR_COUNT; i++) {
-          // Logarithmic mapping:
-          // We want to cover bins 0 to ~600 (up to ~12kHz)
-          // Simple approach: Group bins.
-
-          let startIndex, endIndex;
-
-          // Custom mapping for 40 bars to emphasize bass
-          if (i < 4) { // Deep Bass (20-60Hz)
-            startIndex = 1 + i;
-            endIndex = startIndex + 1;
-          } else if (i < 12) { // Kick/Bass (60-250Hz)
-            startIndex = 5 + (i - 4) * 2;
-            endIndex = startIndex + 2;
-          } else if (i < 24) { // Mids (250-2kHz)
-            startIndex = 21 + (i - 12) * 8;
-            endIndex = startIndex + 8;
-          } else { // Highs (2k+)
-            startIndex = 117 + (i - 24) * 25;
-            endIndex = startIndex + 25;
-          }
-
-          // Average amplitude in this range
-          let sum = 0;
-          let count = 0;
-          for (let j = startIndex; j < endIndex && j < bufferLength; j++) {
-            sum += dataArray[j];
-            count++;
-          }
-          const avg = count > 0 ? sum / count : 0;
-
-          // Boost bass frequencies visually
-          let boost = 1;
-          if (i < 12) boost = 1.2; // Bass boost
-          if (i > 30) boost = 1.5; // Treble boost (usually quieter)
-
-          targetValues[i] = Math.min(255, avg * boost);
-        }
-
-      } else {
-        // SIMULATION
-        if (isPlaying) {
-          simOffset += 0.2;
-          for (let i = 0; i < BAR_COUNT; i++) {
-            // Simulate a "kick" every ~60 frames
-            const kick = (Math.sin(simOffset * 0.5) > 0.9) && (i < 10) ? 100 : 0;
-            const wave = Math.sin(i * 0.3 + simOffset) * 30 + 50;
-            targetValues[i] = wave + kick;
-          }
-        } else {
-          simOffset += 0.05;
-          for (let i = 0; i < BAR_COUNT; i++) {
-            targetValues[i] = Math.sin(i * 0.1 + simOffset) * 10 + 10;
-          }
-        }
-      }
-
-      // --- RENDERING ---
-      const barWidth = (width / BAR_COUNT) * 0.6;
-      const gap = (width - (BAR_COUNT * barWidth)) / (BAR_COUNT + 1);
-
-      // Gradient
-      const gradient = ctx.createLinearGradient(0, height, 0, 0);
-      gradient.addColorStop(0, '#0ea5e9'); // Sky
-      gradient.addColorStop(0.5, '#8b5cf6'); // Violet
-      gradient.addColorStop(1, '#d946ef'); // Fuchsia
-
-      ctx.fillStyle = gradient;
-      ctx.shadowBlur = 15;
-      ctx.shadowColor = "rgba(139, 92, 246, 0.5)";
-
-      for (let i = 0; i < BAR_COUNT; i++) {
-        // SMOOTHING
-        // Attack is fast (0.3), Decay is slow (0.1)
-        const current = previousDataRef.current[i];
-        const target = targetValues[i];
-        const factor = target > current ? 0.4 : 0.15; // Snap up, float down
-
-        const smoothValue = lerp(current, target, factor);
-        previousDataRef.current[i] = smoothValue;
-
-        const barHeight = (smoothValue / 255) * height;
-
-        // Draw Mirrored from Center? Or Standard?
-        // Let's do Standard for accurate EQ visualization, 
-        // OR Mirrored for aesthetics. User asked for "accurate beat".
-        // Standard EQ (Low -> High) is often clearer for "beat accuracy".
-        // But centered looks cooler. Let's do Mirrored but with Bass in Center.
-
-        // To do Bass in Center:
-        // We need to map our 0-40 array (Low->High) to Center->Out.
-        // Array index 0 (Bass) goes to Center. Array index 39 (High) goes to Edges.
-
-        // Actually, the previous code drew index 0 at the center and expanded out.
-        // That means Center = Bass, Edges = Treble. This is perfect.
-
-        const centerX = width / 2;
-        const xOffset = (barWidth + 1) * i;
-
-        // Right side
-        ctx.fillRect(centerX + xOffset, (height - barHeight) / 2, barWidth, barHeight);
-        // Left side
-        ctx.fillRect(centerX - xOffset - barWidth, (height - barHeight) / 2, barWidth, barHeight);
-      }
-    };
-
-    draw();
-
-    return () => {
-      cancelAnimationFrame(animationId);
-    };
-  }, [analyser, isPlaying]);
-
-  return <canvas ref={canvasRef} width={400} height={100} className="w-full h-full opacity-90" />;
-};
-
 export default function Home() {
   const { home } = uiText;
   const { data: session } = useSession();
+  const { currentTrack, isPlaying, playTrack, togglePlay, queue, currentTime, duration } = usePlayer();
+  const [greeting, setGreeting] = useState('');
   const user = session?.user;
+
+  useEffect(() => {
+    const hour = new Date().getHours();
+    if (hour < 12) {
+      setGreeting('Good morning');
+    } else if (hour < 18) {
+      setGreeting('Good afternoon');
+    } else {
+      setGreeting('Good evening');
+    }
+  }, []);
+
   const [remixes, setRemixes] = useState<Track[]>([]);
   const [loading, setLoading] = useState(true);
-  const { currentTrack, currentTime, duration, isPlaying } = usePlayer();
 
   useEffect(() => {
     async function fetchTracks() {
@@ -296,69 +129,50 @@ export default function Home() {
           </div>
         </section>
 
-        {/* RIGHT: Now Playing / Featured card */}
-        <section
-          className="w-full max-w-sm rounded-3xl border border-white/10 bg-white/5
-                     p-5 backdrop-blur-xl shadow-[0_18px_45px_rgba(0,0,0,0.65)]
-                     space-y-4"
-        >
-          <header className="flex items-center justify-between">
-            <div>
-              <p className="text-xs uppercase tracking-[0.15em] text-white/50">Now Playing</p>
-              <p className="text-sm font-medium text-white/90">Your Remix Feed</p>
-            </div>
-            <div className="h-8 w-8 rounded-full bg-white/10 flex items-center justify-center text-[10px]">
-              128 kbps
-            </div>
-          </header>
+        {/* RIGHT: Circular Visualizer */}
+        <section className="relative flex flex-col items-center justify-center w-full max-w-md">
+          {currentTrack ? (
+            <div className="relative flex flex-col items-center justify-center animate-in fade-in zoom-in-95 duration-700">
+              {/* Visualizer */}
+              <div className="relative z-10 scale-100 md:scale-110 transition-transform duration-500 hover:scale-115">
+                <CircularSpectrumVisualizer
+                  imageSrc={currentTrack.coverImageUrl}
+                  size={300}
+                />
+              </div>
 
-          {/* Real-time Audio Visualizer */}
-          <div className="flex h-20 items-end justify-center gap-[2px] overflow-hidden w-full px-4">
-            <AudioVisualizer />
-          </div>
-
-          <div className="space-y-3 text-xs text-white/70">
-            <div className="flex items-center justify-between">
-              <span className="font-medium text-white/90 truncate max-w-[200px]">
-                {currentTrack ? currentTrack.title : (remixes[0]?.title || 'Latest Remix')}
-              </span>
-              <span>{currentTrack ? `${formatTime(currentTime)} / ${formatTime(duration)}` : '03:42'}</span>
+              {/* Track Info (Floating below) */}
+              <div className="mt-6 text-center space-y-1 z-20 bg-black/40 backdrop-blur-xl px-6 py-3 rounded-2xl border border-white/5 shadow-2xl">
+                <h3 className="text-lg font-bold text-white tracking-tight truncate max-w-[250px]">
+                  {currentTrack.title}
+                </h3>
+                <p className="text-xs text-purple-300 font-medium uppercase tracking-wider">
+                  {currentTrack.artist || 'Ram Remix Hub'}
+                </p>
+                <div className="flex items-center justify-center gap-2 mt-2">
+                  {isPlaying ? (
+                    <span className="flex h-2 w-2 relative">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                    </span>
+                  ) : (
+                    <span className="h-2 w-2 rounded-full bg-neutral-600"></span>
+                  )}
+                  <span className="text-[10px] uppercase tracking-widest text-neutral-400">
+                    {isPlaying ? 'Now Playing' : 'Paused'}
+                  </span>
+                </div>
+              </div>
             </div>
-
-            {/* Progress Bar */}
-            <div className="h-1 w-full rounded-full bg-white/10 overflow-hidden">
-              <div
-                className="h-full rounded-full bg-sky-400 transition-[width] duration-150"
-                style={{ width: currentTrack ? `${Math.min(progress, 100)}%` : '40%' }}
-              />
+          ) : (
+            // Fallback when no track is selected
+            <div className="relative flex items-center justify-center h-[300px] w-[300px] rounded-full border border-dashed border-neutral-800 bg-neutral-900/30">
+              <div className="text-center text-neutral-500">
+                <p className="text-sm font-medium">Select a track</p>
+                <p className="text-xs opacity-50">to start visualizer</p>
+              </div>
             </div>
-
-            <div className="space-y-1">
-              <p className="text-[11px] uppercase tracking-[0.18em] text-white/40">
-                Up Next
-              </p>
-              <ul className="space-y-1.5">
-                {remixes.slice(1, 4).map((track) => (
-                  <li key={track.id} className="flex items-center justify-between">
-                    <span className="truncate max-w-[200px]">{track.title}</span>
-                    <span className="text-white/40">03:00</span>
-                  </li>
-                ))}
-                {remixes.length < 2 && (
-                  <>
-                    <li className="flex items-center justify-between">
-                      <span>Midnight Drive (Lo-Fi)</span>
-                      <span className="text-white/40">02:57</span>
-                    </li>
-                    <li className="flex items-center justify-between">
-                      <span>Cyber Pulse (EDM)</span>
-                      <span className="text-white/40">04:11</span>
-                    </li>
-                  </>
-                )}
-              </ul>
-            </div>
-          </div>
+          )}
         </section>
       </div>
 

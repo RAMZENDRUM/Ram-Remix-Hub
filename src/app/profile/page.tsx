@@ -3,7 +3,8 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { CreatorDashboard } from "@/components/profile/CreatorDashboard";
 import { ListenerProfile } from "@/components/profile/ListenerProfile";
-import Link from "next/link";
+import { getCreatorOverview } from "@/lib/profileOverview";
+import { prisma } from "@/lib/prisma";
 
 export default async function ProfilePage() {
     const session = await getServerSession(authOptions);
@@ -12,17 +13,22 @@ export default async function ProfilePage() {
         redirect("/auth");
     }
 
-    // TODO: Replace this with actual role from DB when available
-    // const role = (session.user as any).role ?? "listener";
-    let role = "listener";
-    if (session.user?.email === 'ramzendrum@gmail.com') {
-        role = "admin";
+    // Fetch fresh user data to get latest profile updates (age, country, etc.)
+    const user = await prisma.user.findUnique({
+        where: { id: session.user.id },
+    });
+
+    if (!user) {
+        redirect("/auth");
     }
 
-    if (role === "admin" || role === "creator") {
-        return <CreatorDashboard user={session.user} />;
+    const role = user.role;
+
+    if (role === "ADMIN" || role === "CREATOR") {
+        const overview = await getCreatorOverview(user.id);
+        return <CreatorDashboard user={user} overview={overview} />;
     }
 
     // normal user
-    return <ListenerProfile user={session.user} />;
+    return <ListenerProfile user={user} />;
 }

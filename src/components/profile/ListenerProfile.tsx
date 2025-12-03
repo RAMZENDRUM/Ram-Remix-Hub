@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { useLanguage } from "@/context/LanguageContext";
 import RemixCard from '@/components/RemixCard';
+import { EditProfileModal } from './EditProfileModal';
 
 interface ListenerProfileProps {
     user: any;
@@ -16,6 +17,7 @@ interface ListenerProfileProps {
 
 export function ListenerProfile({ user }: ListenerProfileProps) {
     const { language, setLanguage, t } = useLanguage();
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
     // State for Listener Data
     const [favorites, setFavorites] = useState<any[]>([]);
@@ -32,14 +34,6 @@ export function ListenerProfile({ user }: ListenerProfileProps) {
         { id: 'h2', title: 'Cyberpunk 2077 Theme', artist: 'CDPR', time: '1 hour ago', cover: 'https://images.unsplash.com/photo-1535478044878-3ed83d5456ef?w=800&q=80' },
         { id: 'h3', title: 'Nightcall', artist: 'Kavinsky', time: '3 hours ago', cover: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=800&q=80' },
     ];
-
-    const languages = [
-        { code: 'en', name: 'English (UK)', label: 'EN' },
-        { code: 'ta', name: 'தமிழ் (Tamil)', label: 'TA' },
-        { code: 'de', name: 'Deutsch (German)', label: 'DE' },
-        { code: 'ja', name: '日本語 (Japanese)', label: 'JA' },
-        { code: 'fr', name: 'Français (French)', label: 'FR' },
-    ] as const;
 
     useEffect(() => {
         const fetchFavorites = async () => {
@@ -62,6 +56,12 @@ export function ListenerProfile({ user }: ListenerProfileProps) {
 
     return (
         <div className="min-h-screen pt-24 pb-20 px-4 md:px-8 max-w-7xl mx-auto space-y-8">
+
+            <EditProfileModal
+                isOpen={isEditModalOpen}
+                onClose={() => setIsEditModalOpen(false)}
+                user={user}
+            />
 
             {/* 1. Listener Header */}
             <section className="relative rounded-[2.5rem] bg-neutral-900/60 border border-white/10 backdrop-blur-2xl p-8 md:p-10 overflow-hidden">
@@ -86,8 +86,39 @@ export function ListenerProfile({ user }: ListenerProfileProps) {
                         <h1 className="text-3xl font-bold text-white tracking-tight">{user.name}</h1>
                         <p className="text-neutral-400 font-medium">{user.email}</p>
 
+                        {/* Extra Info: Age, Country, Genres */}
+                        {(user.age || user.country || (user.favoriteGenres && user.favoriteGenres.length > 0)) && (
+                            <div className="pt-2 flex flex-wrap items-center justify-center md:justify-start gap-3 text-sm text-neutral-400">
+                                {user.age && <span>Age: <span className="text-white/80">{user.age}</span></span>}
+                                {user.country && (
+                                    <>
+                                        <span className="w-1 h-1 rounded-full bg-neutral-600" />
+                                        <span>{user.country}</span>
+                                    </>
+                                )}
+                                {user.favoriteGenres && user.favoriteGenres.length > 0 && (
+                                    <>
+                                        <span className="w-1 h-1 rounded-full bg-neutral-600" />
+                                        <div className="flex gap-1">
+                                            {user.favoriteGenres.slice(0, 3).map((g: string) => (
+                                                <span key={g} className="px-2 py-0.5 rounded-full bg-white/5 border border-white/5 text-xs text-white/70">
+                                                    {g}
+                                                </span>
+                                            ))}
+                                            {user.favoriteGenres.length > 3 && (
+                                                <span className="text-xs text-neutral-500">+{user.favoriteGenres.length - 3}</span>
+                                            )}
+                                        </div>
+                                    </>
+                                )}
+                            </div>
+                        )}
+
                         <div className="pt-4 flex flex-wrap justify-center md:justify-start gap-3">
-                            <button className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-white/10 hover:bg-white/20 border border-white/5 transition-all text-sm font-medium">
+                            <button
+                                onClick={() => setIsEditModalOpen(true)}
+                                className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-white/10 hover:bg-white/20 border border-white/5 transition-all text-sm font-medium"
+                            >
                                 <Edit size={16} /> Edit Profile
                             </button>
                             <button
@@ -186,47 +217,7 @@ export function ListenerProfile({ user }: ListenerProfileProps) {
                 </section>
             </div>
 
-            {/* 4. Language Settings (Shared) */}
-            <section className="rounded-[2.5rem] border border-white/10 bg-white/5 backdrop-blur-xl p-8 md:p-10">
-                <div className="mb-8">
-                    <h2 className="text-2xl font-bold text-white flex items-center gap-3">
-                        <Globe size={24} className="text-purple-400" /> {t('settings.language')}
-                    </h2>
-                    <p className="text-neutral-400 mt-2">{t('settings.language.desc')}</p>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {languages.map((lang) => (
-                        <button
-                            key={lang.code}
-                            onClick={() => setLanguage(lang.code)}
-                            className={`relative flex items-center justify-between px-4 py-3 rounded-2xl border transition-all duration-300 group ${language === lang.code
-                                ? 'bg-gradient-to-r from-[#C69AFF] to-[#6F5BFF] border-transparent shadow-xl shadow-purple-900/30 scale-[1.02]'
-                                : 'bg-black/40 border-white/10 hover:bg-white/5 hover:border-white/20'
-                                }`}
-                        >
-                            <div className="flex flex-col items-start">
-                                <span className={`font-bold text-lg ${language === lang.code ? 'text-white' : 'text-white/90'}`}>
-                                    {lang.name}
-                                </span>
-                                <span className={`text-xs font-medium uppercase tracking-wider mt-1 ${language === lang.code ? 'text-white/80' : 'text-white/40'}`}>
-                                    {lang.label}
-                                </span>
-                            </div>
-                            {language === lang.code && (
-                                <div className="bg-white/20 rounded-full p-1.5 backdrop-blur-md">
-                                    <Check size={18} className="text-white" />
-                                </div>
-                            )}
-                        </button>
-                    ))}
-                </div>
-
-                <div className="mt-8 pt-6 border-t border-white/5 flex items-center justify-between text-xs text-neutral-500 font-medium uppercase tracking-widest">
-                    <span>{t('settings.default')}</span>
-                    <span>System v1.2.0</span>
-                </div>
-            </section>
+            {/* Removed Language & Region Settings */}
         </div>
     );
 }

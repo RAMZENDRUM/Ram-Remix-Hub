@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import { signOut } from 'next-auth/react';
 import {
@@ -9,28 +9,28 @@ import {
     TrendingUp, Music, Activity, Globe, Check
 } from 'lucide-react';
 import { useLanguage } from "@/context/LanguageContext";
+import { EditProfileModal } from './EditProfileModal';
 
 interface CreatorDashboardProps {
     user: any;
+    overview: any; // Using any for now, ideally typed from getCreatorOverview
 }
 
-export function CreatorDashboard({ user }: CreatorDashboardProps) {
+export function CreatorDashboard({ user, overview }: CreatorDashboardProps) {
     const { language, setLanguage, t } = useLanguage();
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
-    // Mock Data for Dashboard (Admin/Creator)
+    // Use real data from overview, fallback to 0/empty if missing
     const stats = [
-        { label: 'Total Releases', value: '12', icon: Music, color: 'text-blue-400' },
-        { label: 'Total Plays', value: '23.4K', icon: Play, color: 'text-purple-400' },
-        { label: 'Total Downloads', value: '5.1K', icon: Download, color: 'text-green-400' },
-        { label: 'Avg Rating', value: '4.8', icon: Star, color: 'text-yellow-400' },
+        { label: 'Total Releases', value: overview?.stats?.totalReleases || 0, icon: Music, color: 'text-blue-400' },
+        { label: 'Total Plays', value: overview?.stats?.totalPlays?.toLocaleString() || '0', icon: Play, color: 'text-purple-400' },
+        { label: 'Total Downloads', value: overview?.stats?.totalDownloads?.toLocaleString() || '0', icon: Download, color: 'text-green-400' },
+        { label: 'Avg Rating', value: overview?.stats?.avgRating ? overview.stats.avgRating.toFixed(1) : '-', icon: Star, color: 'text-yellow-400' },
     ];
 
-    const topTracks = [
-        { id: '1', title: 'Midnight City (Ram Remix)', artist: 'M83', plays: '12.5K', downloads: '2.1K', rating: 4.9, cover: 'https://images.unsplash.com/photo-1514525253440-b393452e3726?w=800&q=80' },
-        { id: '2', title: 'Starboy (Cyber Mix)', artist: 'The Weeknd', plays: '8.2K', downloads: '1.8K', rating: 4.7, cover: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=800&q=80' },
-        { id: '3', title: 'Blinding Lights (Synthwave)', artist: 'The Weeknd', plays: '5.4K', downloads: '900', rating: 4.8, cover: 'https://images.unsplash.com/photo-1493225255756-d9584f8606e9?w=800&q=80' },
-    ];
+    const topTracks = overview?.topTracks || [];
 
+    // Mock data for sections not yet connected to real backend
     const recentFeedback = [
         { id: 1, user: 'AlexM', rating: 5, comment: 'This drop is insane! 🔥', time: '2h ago' },
         { id: 2, user: 'SarahJ', rating: 4, comment: 'Love the vibe, but bass is a bit loud.', time: '5h ago' },
@@ -43,16 +43,14 @@ export function CreatorDashboard({ user }: CreatorDashboardProps) {
         { id: 'h3', title: 'Nightcall', artist: 'Kavinsky', time: '3 hours ago', cover: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=800&q=80' },
     ];
 
-    const languages = [
-        { code: 'en', name: 'English (UK)', label: 'EN' },
-        { code: 'ta', name: 'தமிழ் (Tamil)', label: 'TA' },
-        { code: 'de', name: 'Deutsch (German)', label: 'DE' },
-        { code: 'ja', name: '日本語 (Japanese)', label: 'JA' },
-        { code: 'fr', name: 'Français (French)', label: 'FR' },
-    ] as const;
-
     return (
         <div className="min-h-screen pt-24 pb-20 px-4 md:px-8 max-w-7xl mx-auto space-y-8">
+
+            <EditProfileModal
+                isOpen={isEditModalOpen}
+                onClose={() => setIsEditModalOpen(false)}
+                user={user}
+            />
 
             {/* 1. Hero / Creator Header */}
             <section className="relative rounded-[2.5rem] bg-neutral-900/60 border border-white/10 backdrop-blur-2xl p-8 md:p-10 overflow-hidden group">
@@ -90,16 +88,45 @@ export function CreatorDashboard({ user }: CreatorDashboardProps) {
                         </div>
                         <p className="text-neutral-400 font-medium">{user.email}</p>
 
+                        {/* Extra Info: Age, Country, Genres */}
+                        {(user.age || user.country || (user.favoriteGenres && user.favoriteGenres.length > 0)) && (
+                            <div className="pt-2 flex flex-wrap items-center justify-center md:justify-start gap-3 text-sm text-neutral-400">
+                                {user.age && <span>Age: <span className="text-white/80">{user.age}</span></span>}
+                                {user.country && (
+                                    <>
+                                        <span className="w-1 h-1 rounded-full bg-neutral-600" />
+                                        <span>{user.country}</span>
+                                    </>
+                                )}
+                                {user.favoriteGenres && user.favoriteGenres.length > 0 && (
+                                    <>
+                                        <span className="w-1 h-1 rounded-full bg-neutral-600" />
+                                        <div className="flex gap-1">
+                                            {user.favoriteGenres.slice(0, 3).map((g: string) => (
+                                                <span key={g} className="px-2 py-0.5 rounded-full bg-white/5 border border-white/5 text-xs text-white/70">
+                                                    {g}
+                                                </span>
+                                            ))}
+                                            {user.favoriteGenres.length > 3 && (
+                                                <span className="text-xs text-neutral-500">+{user.favoriteGenres.length - 3}</span>
+                                            )}
+                                        </div>
+                                    </>
+                                )}
+                            </div>
+                        )}
+
                         <div className="pt-4 flex flex-wrap justify-center md:justify-start gap-3">
-                            <button className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-white/10 hover:bg-white/20 border border-white/5 transition-all text-sm font-medium">
+                            <button
+                                onClick={() => setIsEditModalOpen(true)}
+                                className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-white/10 hover:bg-white/20 border border-white/5 transition-all text-sm font-medium"
+                            >
                                 <Edit size={16} /> Edit Profile
                             </button>
                             <Link href="/admin" className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-gradient-to-r from-purple-600 to-blue-600 hover:brightness-110 transition-all text-sm font-bold shadow-lg shadow-purple-900/20">
                                 <Upload size={16} /> Upload New Remix
                             </Link>
-                            <Link href="/admin" className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-neutral-800 hover:bg-neutral-700 border border-white/10 transition-all text-sm font-medium">
-                                <Shield size={16} /> Admin Panel
-                            </Link>
+                            {/* Removed Admin Panel Button */}
                             <button
                                 onClick={() => signOut({ callbackUrl: '/' })}
                                 className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/10 transition-all text-sm font-medium"
@@ -137,30 +164,36 @@ export function CreatorDashboard({ user }: CreatorDashboardProps) {
                             <button className="text-xs text-neutral-400 hover:text-white transition-colors">View All</button>
                         </div>
 
-                        <div className="space-y-4">
-                            {topTracks.map((track) => (
-                                <div key={track.id} className="group flex items-center gap-4 p-3 rounded-2xl hover:bg-white/5 transition-colors border border-transparent hover:border-white/5">
-                                    <div className="relative w-16 h-16 rounded-xl overflow-hidden flex-shrink-0">
-                                        <img src={track.cover} alt={track.title} className="w-full h-full object-cover" />
-                                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                            <Play size={20} className="text-white fill-white" />
+                        {topTracks.length > 0 ? (
+                            <div className="space-y-4">
+                                {topTracks.map((track: any) => (
+                                    <div key={track.id} className="group flex items-center gap-4 p-3 rounded-2xl hover:bg-white/5 transition-colors border border-transparent hover:border-white/5">
+                                        <div className="relative w-16 h-16 rounded-xl overflow-hidden flex-shrink-0">
+                                            <img src={track.coverUrl || '/images/default-cover.jpg'} alt={track.title} className="w-full h-full object-cover" />
+                                            <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <Play size={20} className="text-white fill-white" />
+                                            </div>
                                         </div>
+                                        <div className="flex-1 min-w-0">
+                                            <h3 className="font-bold text-white truncate">{track.title}</h3>
+                                            <p className="text-sm text-neutral-400 truncate">{track.artistName}</p>
+                                        </div>
+                                        <div className="hidden sm:flex items-center gap-4 text-xs font-medium text-neutral-400">
+                                            <div className="flex items-center gap-1"><Play size={12} /> {track.plays}</div>
+                                            <div className="flex items-center gap-1"><Download size={12} /> {track.downloads}</div>
+                                            <div className="flex items-center gap-1 text-yellow-400"><Star size={12} fill="currentColor" /> {track.avgRating ? track.avgRating.toFixed(1) : '-'}</div>
+                                        </div>
+                                        <button className="p-2 text-neutral-500 hover:text-white transition-colors">
+                                            <Edit size={16} />
+                                        </button>
                                     </div>
-                                    <div className="flex-1 min-w-0">
-                                        <h3 className="font-bold text-white truncate">{track.title}</h3>
-                                        <p className="text-sm text-neutral-400 truncate">{track.artist}</p>
-                                    </div>
-                                    <div className="hidden sm:flex items-center gap-4 text-xs font-medium text-neutral-400">
-                                        <div className="flex items-center gap-1"><Play size={12} /> {track.plays}</div>
-                                        <div className="flex items-center gap-1"><Download size={12} /> {track.downloads}</div>
-                                        <div className="flex items-center gap-1 text-yellow-400"><Star size={12} fill="currentColor" /> {track.rating}</div>
-                                    </div>
-                                    <button className="p-2 text-neutral-500 hover:text-white transition-colors">
-                                        <Edit size={16} />
-                                    </button>
-                                </div>
-                            ))}
-                        </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="text-center py-8 text-neutral-500">
+                                <p>No tracks uploaded yet.</p>
+                            </div>
+                        )}
                     </section>
 
                     {/* Listening History */}
@@ -264,47 +297,7 @@ export function CreatorDashboard({ user }: CreatorDashboardProps) {
                 </div>
             </div>
 
-            {/* 5. Language & Region Settings */}
-            <section className="rounded-[2.5rem] border border-white/10 bg-white/5 backdrop-blur-xl p-8 md:p-10">
-                <div className="mb-8">
-                    <h2 className="text-2xl font-bold text-white flex items-center gap-3">
-                        <Globe size={24} className="text-purple-400" /> {t('settings.language')}
-                    </h2>
-                    <p className="text-neutral-400 mt-2">{t('settings.language.desc')}</p>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {languages.map((lang) => (
-                        <button
-                            key={lang.code}
-                            onClick={() => setLanguage(lang.code)}
-                            className={`relative flex items-center justify-between px-4 py-3 rounded-2xl border transition-all duration-300 group ${language === lang.code
-                                ? 'bg-gradient-to-r from-[#C69AFF] to-[#6F5BFF] border-transparent shadow-xl shadow-purple-900/30 scale-[1.02]'
-                                : 'bg-black/40 border-white/10 hover:bg-white/5 hover:border-white/20'
-                                }`}
-                        >
-                            <div className="flex flex-col items-start">
-                                <span className={`font-bold text-lg ${language === lang.code ? 'text-white' : 'text-white/90'}`}>
-                                    {lang.name}
-                                </span>
-                                <span className={`text-xs font-medium uppercase tracking-wider mt-1 ${language === lang.code ? 'text-white/80' : 'text-white/40'}`}>
-                                    {lang.label}
-                                </span>
-                            </div>
-                            {language === lang.code && (
-                                <div className="bg-white/20 rounded-full p-1.5 backdrop-blur-md">
-                                    <Check size={18} className="text-white" />
-                                </div>
-                            )}
-                        </button>
-                    ))}
-                </div>
-
-                <div className="mt-8 pt-6 border-t border-white/5 flex items-center justify-between text-xs text-neutral-500 font-medium uppercase tracking-widest">
-                    <span>{t('settings.default')}</span>
-                    <span>System v1.2.0</span>
-                </div>
-            </section>
+            {/* Removed Language & Region Settings */}
         </div>
     );
 }

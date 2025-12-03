@@ -127,6 +127,9 @@ export default function GlobalPlayer() {
         if (!audioRef.current) return;
 
         const initAudioContext = () => {
+            // Explicit check to satisfy TypeScript
+            if (!audioRef.current) return;
+
             if (!audioContextRef.current) {
                 const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
                 audioContextRef.current = new AudioContext();

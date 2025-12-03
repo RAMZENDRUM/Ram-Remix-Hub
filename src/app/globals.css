@@ -49,8 +49,24 @@
     --ring: 0 0% 83.1%;
 
     --radius: 0.5rem;
+
+    /* Cyberpunk Visualizer Theme */
+    --bg-color: #12100f;
+    --grid-color: rgba(255, 240, 230, 0.05);
+    --text-primary: #f3ede9;
+    --text-secondary: #c2b8b2;
+    --text-highlight: #ff4e42;
+    --accent-primary: #ff4e42;
+    --accent-secondary: #c2362f;
+    --accent-tertiary: #ffb3ab;
+    --panel-bg: rgba(30, 26, 24, 0.7);
+    --panel-border: rgba(255, 78, 66, 0.3);
+    --panel-highlight: rgba(255, 78, 66, 0.1);
+    --scanner-line: rgba(255, 78, 66, 0.7);
   }
 }
+
+@import url("https://fonts.cdnfonts.com/css/thegoodmonolith");
 
 @layer base {
   * {

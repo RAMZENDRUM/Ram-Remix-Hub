@@ -44,6 +44,7 @@ export const authOptions: NextAuthOptions = {
                     name: user.name,
                     email: user.email,
                     image: user.image,
+                    role: user.role,
                 };
             }
         })
@@ -55,9 +56,10 @@ export const authOptions: NextAuthOptions = {
         signIn: "/auth",
     },
     callbacks: {
-        async session({ session, token }) {
-            if (session.user && token.sub) {
-                session.user.id = token.sub;
+        async session({ session, user }) {
+            if (session.user) {
+                session.user.id = user.id;
+                session.user.role = user.role;
             }
             return session;
         }

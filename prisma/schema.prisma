@@ -19,6 +19,13 @@ model User {
   likes         Like[]
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
+  role          Role      @default(LISTENER)
+}
+
+enum Role {
+  LISTENER
+  CREATOR
+  ADMIN
 }
 
 model Account {

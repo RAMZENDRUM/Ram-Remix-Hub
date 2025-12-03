@@ -22,7 +22,7 @@ export default async function ProfilePage() {
         redirect("/auth");
     }
 
-    const role = user.role;
+    const role = (user as any).role;
 
     if (role === "ADMIN" || role === "CREATOR") {
         const overview = await getCreatorOverview(user.id);

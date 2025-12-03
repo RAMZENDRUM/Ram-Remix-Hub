@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { Instagram, User, Disc } from "lucide-react";
+import { WavePath } from "@/components/ui/wave-path";
 
 // Manually adding Spotify icon since it might not be in all lucide versions or just to be safe
 const Spotify = ({ className }: { className?: string }) => (
@@ -28,7 +29,10 @@ const currentYear = new Date().getFullYear();
 
 export function SiteFooter() {
     return (
-        <footer className="w-full border-t border-neutral-800 bg-black py-12 md:py-16 mt-auto">
+        <footer className="w-full bg-black py-12 md:py-16 mt-auto relative">
+            <div className="absolute top-0 left-0 w-full flex justify-center -translate-y-1/2 pointer-events-none">
+                <WavePath className="w-full max-w-6xl" />
+            </div>
             <div className="mx-auto w-full max-w-6xl px-4 md:px-6">
                 {/* Brand & Content Container */}
                 <div className="flex flex-col gap-8">

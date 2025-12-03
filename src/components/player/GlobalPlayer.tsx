@@ -105,10 +105,12 @@ export default function GlobalPlayer() {
         nextTrack,
         prevTrack,
         queue,
-        setAnalyser
+        setAnalyser,
+        audioRef // Use shared ref
     } = usePlayer();
     const { pushToast } = useToast();
-    const audioRef = useRef<HTMLAudioElement>(null);
+
+    // const audioRef = useRef<HTMLAudioElement>(null); // Removed local ref
     const audioContextRef = useRef<AudioContext | null>(null);
     const sourceRef = useRef<MediaElementAudioSourceNode | null>(null);
 
@@ -135,7 +137,9 @@ export default function GlobalPlayer() {
                 audioContextRef.current = new AudioContext();
 
                 const analyser = audioContextRef.current.createAnalyser();
-                analyser.fftSize = 256;
+                // Elite Visualizer Settings
+                analyser.fftSize = 2048;
+                analyser.smoothingTimeConstant = 0.8;
 
                 sourceRef.current = audioContextRef.current.createMediaElementSource(audioRef.current);
                 sourceRef.current.connect(analyser);
@@ -161,7 +165,7 @@ export default function GlobalPlayer() {
             window.removeEventListener('click', handleInteraction);
             window.removeEventListener('keydown', handleInteraction);
         };
-    }, [setAnalyser]);
+    }, [setAnalyser, audioRef]);
 
     // Keyboard Listener for Spacebar Play/Pause
     useEffect(() => {
@@ -189,7 +193,7 @@ export default function GlobalPlayer() {
         } else {
             audioRef.current.pause();
         }
-    }, [isPlaying, currentTrack]);
+    }, [isPlaying, currentTrack, audioRef]);
 
     // Handle Track Change
     useEffect(() => {
@@ -203,7 +207,7 @@ export default function GlobalPlayer() {
         if (isPlaying) {
             audioRef.current.play().catch(e => console.error("Play error:", e));
         }
-    }, [currentTrack]);
+    }, [currentTrack, audioRef]);
 
     const handleLoadedMetadata = () => {
         if (audioRef.current) {

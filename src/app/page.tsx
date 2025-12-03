@@ -6,7 +6,7 @@ import RemixCard from '@/components/RemixCard';
 import styles from './page.module.css';
 import uiText from '@/data/ui-text.json';
 import { useSession } from 'next-auth/react';
-import CircularSpectrumVisualizer from '@/components/CircularSpectrumVisualizer';
+import EliteVisualizer from '@/components/EliteVisualizer';
 import { usePlayer } from "@/context/PlayerContext";
 import { formatTime } from "@/lib/formatTime";
 
@@ -135,8 +135,8 @@ export default function Home() {
             <div className="relative flex flex-col items-center justify-center animate-in fade-in zoom-in-95 duration-700">
               {/* Visualizer */}
               <div className="relative z-10 scale-100 md:scale-110 transition-transform duration-500 hover:scale-115">
-                <CircularSpectrumVisualizer
-                  imageSrc={currentTrack.coverImageUrl}
+                <EliteVisualizer
+                  coverUrl={currentTrack.coverImageUrl}
                   size={300}
                 />
               </div>

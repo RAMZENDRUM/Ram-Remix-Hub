@@ -8,6 +8,7 @@ import { useSession } from 'next-auth/react';
 import SearchOverlay from './SearchOverlay';
 import { LanguageSwitcher } from "./ui/language-switcher";
 import { useLanguage } from "@/context/LanguageContext";
+import { BrandLogo } from "@/components/BrandLogo";
 
 const Navbar = () => {
     const pathname = usePathname();
@@ -37,14 +38,7 @@ const Navbar = () => {
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex items-center justify-between h-16">
                         {/* Logo */}
-                        <Link href="/" className="flex items-center gap-2 group">
-                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center group-hover:scale-110 transition-transform">
-                                <span className="font-bold text-white">R</span>
-                            </div>
-                            <span className="font-bold text-xl tracking-tight text-white group-hover:text-purple-400 transition-colors">
-                                Ram Remix Hub
-                            </span>
-                        </Link>
+                        <BrandLogo variant="nav" />
 
                         {/* Desktop Nav */}
                         <div className="hidden md:flex items-center gap-8">

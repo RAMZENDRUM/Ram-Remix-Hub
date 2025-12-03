@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Instagram, User, Disc, Copy } from "lucide-react";
 import { WavePath } from "@/components/ui/wave-path";
 import { useToast } from "@/context/ToastContext";
+import { BrandLogo } from "@/components/BrandLogo";
 
 // Manually adding Spotify icon since it might not be in all lucide versions or just to be safe
 const Spotify = ({ className }: { className?: string }) => (
@@ -40,18 +41,7 @@ export function SiteFooter() {
                 {/* Brand & Content Container */}
                 <div className="flex flex-col gap-8">
                     {/* Brand Logo */}
-                    <div className="flex items-center gap-3">
-                        <div className="flex items-end gap-0.5">
-                            <span className="h-4 w-1 rounded-full bg-purple-500" />
-                            <span className="h-6 w-1 rounded-full bg-purple-500" />
-                            <span className="h-3 w-1 rounded-full bg-purple-500" />
-                            <span className="h-8 w-1 rounded-full bg-purple-500" />
-                            <span className="h-5 w-1 rounded-full bg-purple-500" />
-                        </div>
-                        <span className="text-xl font-bold tracking-wide text-white">
-                            Ram Remix Hub
-                        </span>
-                    </div>
+                    <BrandLogo variant="footer" />
 
                     {/* Info Rows with Aligned Navigation */}
                     <div className="w-full space-y-4">

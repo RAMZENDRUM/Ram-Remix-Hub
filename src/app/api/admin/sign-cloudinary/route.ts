@@ -18,13 +18,13 @@ export async function POST(req: NextRequest) {
         const signature = cloudinary.utils.api_sign_request({
             timestamp: timestamp,
             folder: folder,
-        }, process.env.CLOUDINARY_API_SECRET!);
+        }, cloudinary.config().api_secret!);
 
         return NextResponse.json({
             timestamp,
             signature,
-            cloudName: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
-            apiKey: process.env.CLOUDINARY_API_KEY
+            cloudName: cloudinary.config().cloud_name,
+            apiKey: cloudinary.config().api_key
         });
     } catch (error) {
         console.error("Signature error:", error);

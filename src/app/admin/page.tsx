@@ -117,14 +117,23 @@ export default function AdminDashboard() {
                     body: JSON.stringify({ folder: `ram-remix-hub/${folder}` }),
                 });
 
-                if (!signRes.ok) throw new Error('Failed to sign upload request');
+                if (!signRes.ok) {
+                    const errorText = await signRes.text();
+                    console.error("Sign request failed:", signRes.status, errorText);
+                    throw new Error('Failed to sign upload request: ' + errorText);
+                }
                 const { signature, timestamp, cloudName, apiKey } = await signRes.json();
+                console.log("Got signature for", folder, "cloudName:", cloudName, "apiKey:", apiKey);
+
+                if (!cloudName || !apiKey) {
+                    throw new Error("Missing Cloudinary configuration (cloudName or apiKey)");
+                }
 
                 // 2. Upload to Cloudinary
                 const formData = new FormData();
                 formData.append('file', file);
                 formData.append('api_key', apiKey);
-                formData.append('timestamp', timestamp);
+                formData.append('timestamp', timestamp.toString());
                 formData.append('signature', signature);
                 formData.append('folder', `ram-remix-hub/${folder}`);
 
@@ -135,10 +144,12 @@ export default function AdminDashboard() {
 
                 if (!uploadRes.ok) {
                     const err = await uploadRes.json();
+                    console.error("Cloudinary upload failed:", err);
                     throw new Error(err.error?.message || 'Cloudinary upload failed');
                 }
 
                 const data = await uploadRes.json();
+                console.log("Upload successful:", data.secure_url);
                 return data.secure_url;
             };
 

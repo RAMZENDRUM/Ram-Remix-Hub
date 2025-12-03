@@ -36,6 +36,8 @@ interface PlayerContextType {
     loopMode: LoopMode;
     toggleShuffle: () => void;
     toggleLoopMode: () => void;
+    likedIds: Set<string>;
+    toggleLike: (id: string) => void;
 }
 
 const PlayerContext = createContext<PlayerContextType | undefined>(undefined);
@@ -53,6 +55,9 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
     const [isShuffle, setIsShuffle] = useState(false);
     const [loopMode, setLoopMode] = useState<LoopMode>("off");
     const [shuffledOrder, setShuffledOrder] = useState<number[]>([]);
+
+    // Liked Tracks State
+    const [likedIds, setLikedIds] = useState<Set<string>>(new Set());
 
     const audioRef = useRef<HTMLAudioElement>(null);
 
@@ -81,6 +86,19 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
             if (prev === "off") return "track";
             if (prev === "track") return "queue";
             return "off";
+        });
+    };
+
+    // Like Logic
+    const toggleLike = (id: string) => {
+        setLikedIds((prev) => {
+            const next = new Set(prev);
+            if (next.has(id)) {
+                next.delete(id);
+            } else {
+                next.add(id);
+            }
+            return next;
         });
     };
 
@@ -213,7 +231,9 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
             isShuffle,
             loopMode,
             toggleShuffle,
-            toggleLoopMode
+            toggleLoopMode,
+            likedIds,
+            toggleLike
         }}>
             {children}
         </PlayerContext.Provider>

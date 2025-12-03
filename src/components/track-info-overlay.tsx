@@ -26,7 +26,8 @@ interface TrackInfoOverlayProps {
     open: boolean;
     onClose: () => void;
 
-    // === DATA FROM YOUR REAL PLAYER ===
+    trackId: string;
+
     title: string;
     artist: string;
     coverUrl?: string | null;
@@ -36,17 +37,16 @@ interface TrackInfoOverlayProps {
     isPlaying: boolean;
     isLiked: boolean;
     isShuffle: boolean;
-    isLoop: boolean; // true = repeat
+    isLoop: boolean;
 
     volume: number; // 0–100
 
-    // === ACTIONS FROM YOUR REAL PLAYER ===
     onPlayPause: () => void;
     onPrev: () => void;
     onNext: () => void;
     onSeek: (seconds: number) => void;
     onVolumeChange: (value: number) => void;
-    onToggleLike: () => void;
+    onToggleLike: (trackId: string) => void;
     onToggleShuffle: () => void;
     onToggleLoop: () => void;
 }
@@ -54,6 +54,7 @@ interface TrackInfoOverlayProps {
 export function TrackInfoOverlay({
     open,
     onClose,
+    trackId,
     title,
     artist,
     coverUrl,
@@ -81,26 +82,29 @@ export function TrackInfoOverlay({
         <div className="fixed inset-0 z-40 flex items-center justify-center">
             {/* BACKDROP */}
             <button
-                className="absolute inset-0 bg-black/50 backdrop-blur-xl"
+                className="absolute inset-0 bg-black/60 backdrop-blur-2xl"
                 onClick={onClose}
             />
 
-            {/* CARD */}
+            {/* METALLIC CARD */}
             <Card
                 className={cn(
-                    "relative z-10 w-[360px] overflow-hidden rounded-[36px] border border-white/10",
-                    // metallic / 3D purple: radial highlight + deep gradient base
-                    "bg-[radial-gradient(circle_at_15%_0%,rgba(255,255,255,0.35)_0,transparent_55%),linear-gradient(to_bottom_right,#130725,#3a1765,#8c4bff)]",
-                    "shadow-[0_26px_90px_rgba(0,0,0,0.85)] p-6"
+                    "relative z-10 w-[360px] overflow-hidden rounded-[32px] border border-white/18",
+                    // base dark shell
+                    "bg-[radial-gradient(circle_at_0%_0%,rgba(255,255,255,0.45)_0,transparent_50%),radial-gradient(circle_at_100%_100%,rgba(168,85,247,0.75)_0,transparent_55%),linear-gradient(to_bottom_right,#050010,#130424,#05000c)]",
+                    "shadow-[0_28px_90px_rgba(0,0,0,0.9)] p-5"
                 )}
             >
-                {/* subtle inner gloss */}
-                <div className="pointer-events-none absolute inset-px rounded-[34px] border border-white/8 bg-gradient-to-b from-white/10 via-transparent to-black/20" />
+                {/* inner chrome ring */}
+                <div className="pointer-events-none absolute inset-[1px] rounded-[30px] border border-white/25 bg-gradient-to-b from-white/10 via-transparent to-black/35" />
 
-                {/* CONTENT WRAPPER so gloss stays behind */}
+                {/* subtle vignette */}
+                <div className="pointer-events-none absolute inset-0 rounded-[32px] bg-[radial-gradient(circle_at_20%_0%,rgba(255,255,255,0.3)_0,transparent_55%),radial-gradient(circle_at_100%_120%,rgba(59,130,246,0.25)_0,transparent_55%)] mix-blend-screen" />
+
+                {/* CONTENT */}
                 <div className="relative z-10">
                     {/* Cover */}
-                    <div className="relative mb-6 aspect-[4/3] w-full overflow-hidden rounded-3xl shadow-[0_18px_45px_rgba(0,0,0,0.9)]">
+                    <div className="relative mb-5 aspect-[4/3] w-full overflow-hidden rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.9)]">
                         <img
                             src={
                                 coverUrl ??
@@ -109,12 +113,16 @@ export function TrackInfoOverlay({
                             alt={title}
                             className="h-full w-full object-cover"
                         />
+                        {/* glass overlay on top edge */}
+                        <div className="pointer-events-none absolute inset-x-0 top-0 h-14 bg-gradient-to-b from-white/30 via-white/0 to-transparent" />
                     </div>
 
-                    {/* Title / artist */}
+                    {/* Song info */}
                     <div className="mb-4 space-y-1">
-                        <h2 className="text-lg font-semibold text-slate-50">{title}</h2>
-                        <p className="text-sm text-slate-300">{artist}</p>
+                        <h2 className="text-lg font-semibold text-slate-50 tracking-wide">
+                            {title}
+                        </h2>
+                        <p className="text-sm text-slate-200/80">{artist}</p>
                     </div>
 
                     {/* Progress */}
@@ -126,9 +134,9 @@ export function TrackInfoOverlay({
                             onValueChange={(vals) =>
                                 onSeek(((vals[0] ?? 0) / 100) * (duration || 0))
                             }
-                            className="[--track-bg:rgba(255,255,255,0.28)]"
+                            className="w-full data-[state=active]:cursor-grabbing"
                         />
-                        <div className="flex justify-between text-[11px] text-slate-200/80">
+                        <div className="flex justify-between text-[11px] text-slate-100/80">
                             <span>{formatTime(currentTime)}</span>
                             <span>{formatTime(duration)}</span>
                         </div>
@@ -138,8 +146,8 @@ export function TrackInfoOverlay({
                     <div className="mb-5 flex items-center justify-center gap-4">
                         <button
                             className={cn(
-                                "h-9 w-9 rounded-full flex items-center justify-center text-slate-200/80 hover:text-purple-300 transition-colors",
-                                isShuffle && "text-purple-300 bg-white/5"
+                                "h-8 w-8 rounded-full flex items-center justify-center text-slate-200/85 hover:text-purple-300 transition-colors",
+                                isShuffle && "bg-white/10 text-purple-300"
                             )}
                             onClick={onToggleShuffle}
                         >
@@ -147,14 +155,14 @@ export function TrackInfoOverlay({
                         </button>
 
                         <button
-                            className="h-10 w-10 rounded-full flex items-center justify-center text-slate-100 hover:text-purple-200"
+                            className="h-10 w-10 rounded-full flex items-center justify-center text-slate-50 hover:text-purple-200"
                             onClick={onPrev}
                         >
                             <SkipBack className="h-5 w-5" />
                         </button>
 
                         <button
-                            className="h-16 w-16 rounded-full bg-slate-950 text-white flex items-center justify-center shadow-[0_18px_45px_rgba(25,0,70,0.9)] hover:scale-105 hover:shadow-[0_22px_55px_rgba(25,0,70,1)] transition-all"
+                            className="h-16 w-16 rounded-full bg-slate-950/95 text-white flex items-center justify-center shadow-[0_24px_65px_rgba(59,7,100,0.95)] hover:scale-105 hover:shadow-[0_30px_80px_rgba(88,28,135,1)] transition-all"
                             onClick={onPlayPause}
                         >
                             {isPlaying ? (
@@ -165,7 +173,7 @@ export function TrackInfoOverlay({
                         </button>
 
                         <button
-                            className="h-10 w-10 rounded-full flex items-center justify-center text-slate-100 hover:text-purple-200"
+                            className="h-10 w-10 rounded-full flex items-center justify-center text-slate-50 hover:text-purple-200"
                             onClick={onNext}
                         >
                             <SkipForward className="h-5 w-5" />
@@ -173,8 +181,8 @@ export function TrackInfoOverlay({
 
                         <button
                             className={cn(
-                                "h-9 w-9 rounded-full flex items-center justify-center text-slate-200/80 hover:text-purple-300 transition-colors",
-                                isLoop && "text-purple-300 bg-white/5"
+                                "h-8 w-8 rounded-full flex items-center justify-center text-slate-200/85 hover:text-purple-300 transition-colors",
+                                isLoop && "bg-white/10 text-purple-300"
                             )}
                             onClick={onToggleLoop}
                         >
@@ -184,21 +192,21 @@ export function TrackInfoOverlay({
 
                     {/* Secondary controls */}
                     <div className="flex items-center justify-between">
-                        {/* LIKE BUTTON – this must call onToggleLike */}
+                        {/* LIKE */}
                         <button
                             className="h-8 w-8 flex items-center justify-center rounded-full text-slate-200 hover:text-red-400"
-                            onClick={onToggleLike}
+                            onClick={() => onToggleLike(trackId)}
                         >
                             <Heart
                                 className={cn(
                                     "h-4 w-4 transition-all",
-                                    isLiked && "fill-red-500 text-red-500"
+                                    isLiked && "fill-red-500 text-red-500 drop-shadow-[0_0_10px_rgba(248,113,113,0.7)]"
                                 )}
                             />
                         </button>
 
                         <div className="flex items-center gap-2">
-                            <Volume2 className="h-4 w-4 text-slate-200/85" />
+                            <Volume2 className="h-4 w-4 text-slate-100/85" />
                             <Slider
                                 value={[volume]}
                                 max={100}

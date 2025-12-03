@@ -112,7 +112,9 @@ export default function GlobalPlayer() {
         isShuffle,
         toggleShuffle,
         loopMode,
-        toggleLoopMode
+        toggleLoopMode,
+        likedIds,
+        toggleLike
     } = usePlayer();
     const { pushToast } = useToast();
 
@@ -252,7 +254,11 @@ export default function GlobalPlayer() {
 
     // Action Handlers
     const handleLike = () => {
-        pushToast("success", "Added to Liked Songs");
+        if (currentTrack) {
+            toggleLike(currentTrack.id);
+            // Optional: Toast is handled by UI feedback usually, but we can keep it if desired
+            // pushToast("success", likedIds.has(currentTrack.id) ? "Removed from Liked Songs" : "Added to Liked Songs");
+        }
     };
 
     const handleDownload = () => {
@@ -287,6 +293,8 @@ export default function GlobalPlayer() {
             </footer>
         );
     }
+
+    const isLiked = likedIds.has(currentTrack.id);
 
     return (
         <>
@@ -470,13 +478,14 @@ export default function GlobalPlayer() {
             <TrackInfoOverlay
                 open={infoOpen}
                 onClose={() => setInfoOpen(false)}
+                trackId={currentTrack?.id ?? ""}
                 title={currentTrack?.title ?? ""}
                 artist={currentTrack?.artist ?? ""}
                 coverUrl={currentTrack?.coverImageUrl ?? null}
                 duration={duration}
                 currentTime={currentTime}
                 isPlaying={isPlaying}
-                isLiked={false} // Wire to real liked state if available
+                isLiked={isLiked}
                 isShuffle={isShuffle}
                 isLoop={loopMode !== "off"}
                 volume={volume * 100}
@@ -485,7 +494,7 @@ export default function GlobalPlayer() {
                 onNext={nextTrack}
                 onSeek={handleSeek}
                 onVolumeChange={handleVolumeChange}
-                onToggleLike={handleLike}
+                onToggleLike={toggleLike}
                 onToggleShuffle={toggleShuffle}
                 onToggleLoop={toggleLoopMode}
             />

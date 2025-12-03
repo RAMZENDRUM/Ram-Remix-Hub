@@ -32,20 +32,28 @@ interface Review {
     userId: string | null;
 }
 
+import { useSyncRouteWithPlayer } from '@/hooks/useSyncRouteWithPlayer';
+
+// ... imports
+
 export default function RemixDetail({ params }: { params: Promise<{ id: string }> }) {
     const { id } = use(params);
     const { remixDetail } = uiText;
-    const { playQueue } = usePlayer();
+    const { playQueue, likedIds, toggleLike } = usePlayer();
     const [track, setTrack] = useState<Track | null>(null);
     const [relatedTracks, setRelatedTracks] = useState<Track[]>([]);
     const [loading, setLoading] = useState(true);
+
+    // Sync route with player
+    useSyncRouteWithPlayer();
 
     // Rating State
     const [ratingStats, setRatingStats] = useState({ average: 0, count: 0 });
     const [reviews, setReviews] = useState<Review[]>([]);
     const [isRatingModalOpen, setIsRatingModalOpen] = useState(false);
 
-    const [isLiked, setIsLiked] = useState(false);
+    // Derived liked state
+    const isLiked = track ? likedIds.has(track.id) : false;
 
     const fetchTrackAndRatings = async () => {
         try {
@@ -73,11 +81,15 @@ export default function RemixDetail({ params }: { params: Promise<{ id: string }
                 setReviews(data.reviews);
             }
 
-            // Fetch Like Status
+            // Fetch Like Status and Sync with Context
             const likeRes = await fetch(`/api/likes?trackId=${id}`);
             if (likeRes.ok) {
                 const data = await likeRes.json();
-                setIsLiked(data.liked);
+                if (data.liked && !likedIds.has(id)) {
+                    toggleLike(id);
+                } else if (!data.liked && likedIds.has(id)) {
+                    toggleLike(id);
+                }
             }
         } catch (error) {
             console.error("Failed to fetch data", error);
@@ -99,18 +111,29 @@ export default function RemixDetail({ params }: { params: Promise<{ id: string }
     };
 
     const handleLike = async () => {
+        if (!track) return;
+
+        // Optimistic update
+        toggleLike(track.id);
+
         try {
             const res = await fetch('/api/likes', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ trackId: track?.id }),
+                body: JSON.stringify({ trackId: track.id }),
             });
 
             if (res.ok) {
                 const data = await res.json();
-                setIsLiked(data.liked);
+                // Ensure context matches server state (should already match due to optimistic update)
+                const currentlyLiked = likedIds.has(track.id);
+                if (data.liked !== currentlyLiked) {
+                    toggleLike(track.id);
+                }
                 pushToast("success", data.liked ? "Added to Favorites" : "Removed from Favorites");
             } else {
+                // Revert on failure
+                toggleLike(track.id);
                 if (res.status === 401) {
                     pushToast("error", "Please login to like tracks");
                 } else {
@@ -118,6 +141,8 @@ export default function RemixDetail({ params }: { params: Promise<{ id: string }
                 }
             }
         } catch (error) {
+            // Revert on error
+            toggleLike(track.id);
             pushToast("error", "An error occurred");
         }
     };

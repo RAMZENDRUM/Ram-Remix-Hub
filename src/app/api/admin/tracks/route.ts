@@ -32,6 +32,12 @@ export async function POST(req: NextRequest) {
         const formData = await req.formData();
         const artist = formData.get("artist") as string;
         const title = formData.get("title") as string;
+
+        console.log("Upload attempt started");
+        console.log("Cloud Name present:", !!process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME);
+        console.log("API Key present:", !!process.env.CLOUDINARY_API_KEY);
+        console.log("API Secret present:", !!process.env.CLOUDINARY_API_SECRET);
+
         const description = formData.get("description") as string;
         const genre = formData.get("genre") as string;
         const type = formData.get("type") as string;

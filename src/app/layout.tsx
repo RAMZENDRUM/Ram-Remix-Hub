@@ -46,7 +46,7 @@ export default async function RootLayout({
           thunderEnabled={true}
           thunderVolume={1}
           thunderDelay={2}
-          className="fixed inset-0 pointer-events-none z-0"
+          className="fixed inset-0 pointer-events-none z-50"
         />
         <GlobalSpotlight />
         <AnoAI />

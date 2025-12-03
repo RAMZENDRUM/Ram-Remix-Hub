@@ -7,7 +7,7 @@ import LoginCard from "@/components/auth/LoginCard";
 
 export default function AuthPage() {
     return (
-        <main className="min-h-screen text-white flex flex-col relative overflow-hidden bg-black">
+        <main className="min-h-screen text-white flex flex-col relative overflow-hidden bg-transparent">
             {/* Header */}
             <div className="absolute top-8 left-0 right-0 z-20 flex justify-center">
                 <h1 className="text-3xl md:text-4xl font-semibold bg-gradient-to-r from-cyan-400 via-sky-500 to-purple-500 text-transparent bg-clip-text">

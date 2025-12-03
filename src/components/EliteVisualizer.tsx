@@ -45,10 +45,10 @@ const EliteVisualizer: React.FC<EliteVisualizerProps> = ({
         const dataArray = new Uint8Array(bufferLength);
 
         // Config
-        const BAR_COUNT = 80; // Number of bars
-        const INNER_RADIUS = size * 0.28; // Radius of the cover art circle
-        const MAX_BAR_HEIGHT = size * 0.18; // Max length of bars
+        const BAR_COUNT = 64;
         const CENTER = size / 2;
+        const RADIUS = size * 0.25;
+        const MAX_BAR_HEIGHT = size * 0.2;
 
         const renderFrame = () => {
             // 1. Get Data
@@ -57,58 +57,72 @@ const EliteVisualizer: React.FC<EliteVisualizerProps> = ({
             } else {
                 // Sim data
                 for (let i = 0; i < bufferLength; i++) {
-                    dataArray[i] = 20; // Low baseline
+                    dataArray[i] = 10; // Low baseline
                 }
             }
 
             ctx.clearRect(0, 0, size, size);
 
-            // 2. Draw Glow
-            const glowGradient = ctx.createRadialGradient(CENTER, CENTER, INNER_RADIUS, CENTER, CENTER, size * 0.5);
-            glowGradient.addColorStop(0, "rgba(124, 58, 237, 0.2)"); // Purple glow
-            glowGradient.addColorStop(1, "rgba(0, 0, 0, 0)");
+            // 2. Draw Circular Visualizer Background (Purple)
+            // Soft purple fill
+            ctx.beginPath();
+            ctx.arc(CENTER, CENTER, RADIUS * 1.4, 0, Math.PI * 2);
+            ctx.fillStyle = "rgba(168, 85, 255, 0.05)";
+            ctx.fill();
+
+            // Purple Glow Gradient
+            const glowGradient = ctx.createRadialGradient(CENTER, CENTER, RADIUS, CENTER, CENTER, RADIUS * 1.5);
+            glowGradient.addColorStop(0, "rgba(168, 85, 255, 0.2)");
+            glowGradient.addColorStop(1, "rgba(109, 40, 217, 0)");
             ctx.fillStyle = glowGradient;
             ctx.beginPath();
-            ctx.arc(CENTER, CENTER, size * 0.5, 0, Math.PI * 2);
+            ctx.arc(CENTER, CENTER, RADIUS * 1.5, 0, Math.PI * 2);
             ctx.fill();
 
             // 3. Draw Cover Art (Circular)
             ctx.save();
             ctx.beginPath();
-            ctx.arc(CENTER, CENTER, INNER_RADIUS - 5, 0, Math.PI * 2);
+            ctx.arc(CENTER, CENTER, RADIUS, 0, Math.PI * 2);
             ctx.closePath();
             ctx.clip();
 
             if (imageRef.current && imageRef.current.complete) {
-                ctx.drawImage(imageRef.current, CENTER - INNER_RADIUS, CENTER - INNER_RADIUS, INNER_RADIUS * 2, INNER_RADIUS * 2);
+                ctx.drawImage(imageRef.current, CENTER - RADIUS, CENTER - RADIUS, RADIUS * 2, RADIUS * 2);
             } else {
                 ctx.fillStyle = "#1a1a1a";
                 ctx.fill();
             }
             ctx.restore();
 
-            // 4. Draw Radial Bars
-            // We map the 80 bars to the frequency data
-            // We usually want to skip the very high frequencies as they are often empty
-            const step = Math.floor(bufferLength * 0.7 / BAR_COUNT);
+            // 4. Draw Radial Bars (Purple Spectrum)
+            // We'll use a subset of the data array to match BAR_COUNT
+            const step = Math.floor(bufferLength / BAR_COUNT);
 
             for (let i = 0; i < BAR_COUNT; i++) {
                 const dataIndex = i * step;
                 const value = dataArray[dataIndex] || 0;
 
-                // Scale value
                 const percent = value / 255;
-                const barHeight = Math.max(4, percent * MAX_BAR_HEIGHT); // Min height 4px
+                const barHeight = Math.max(4, percent * MAX_BAR_HEIGHT);
 
-                const angle = (i / BAR_COUNT) * Math.PI * 2 - Math.PI / 2; // Start from top
+                const angle = (i / BAR_COUNT) * Math.PI * 2 - Math.PI / 2;
 
-                ctx.stroke();
+                // Purple hue range: 260 - 280
+                const hue = 260 + (i / BAR_COUNT) * 20;
+                ctx.fillStyle = `hsl(${hue}, 100%, 50%)`;
+
+                ctx.save();
+                ctx.translate(CENTER, CENTER);
+                ctx.rotate(angle);
+                // Draw bar starting from just outside the radius
+                ctx.fillRect(RADIUS + 10, -2, barHeight, 4);
+                ctx.restore();
             }
 
-            // 5. Draw Inner Ring Border
+            // 5. Inner Ring (Light Purple)
             ctx.beginPath();
-            ctx.arc(CENTER, CENTER, INNER_RADIUS, 0, Math.PI * 2);
-            ctx.strokeStyle = "rgba(139, 92, 246, 0.5)"; // Light purple ring
+            ctx.arc(CENTER, CENTER, RADIUS, 0, Math.PI * 2);
+            ctx.strokeStyle = "rgba(168, 85, 255, 0.5)";
             ctx.lineWidth = 2;
             ctx.stroke();
 

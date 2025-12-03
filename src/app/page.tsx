@@ -29,8 +29,11 @@ const AudioVisualizer = () => {
     if (!ctx) return;
 
     let animationId: number;
-    const bufferLength = analyser ? analyser.frequencyBinCount : 0;
+    const bufferLength = analyser ? analyser.frequencyBinCount : 128;
     const dataArray = new Uint8Array(bufferLength);
+
+    // Fallback simulation variables
+    let simOffset = 0;
 
     const draw = () => {
       animationId = requestAnimationFrame(draw);
@@ -40,45 +43,71 @@ const AudioVisualizer = () => {
 
       ctx.clearRect(0, 0, width, height);
 
-      if (!analyser || !isPlaying) {
-        // Draw idle state (flat line or gentle wave)
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
-        for (let i = 0; i < 40; i++) {
-          const barHeight = 4;
-          const x = (i * (width / 40));
-          ctx.fillRect(x, height - barHeight - 30, (width / 40) - 2, barHeight);
+      // Check if we have valid data
+      let hasData = false;
+      if (analyser && isPlaying) {
+        analyser.getByteFrequencyData(dataArray);
+        // Check if array has any non-zero values
+        for (let i = 0; i < bufferLength; i++) {
+          if (dataArray[i] > 0) {
+            hasData = true;
+            break;
+          }
         }
-        return;
       }
 
-      analyser.getByteFrequencyData(dataArray);
+      // If no real data (CORS issue or paused), simulate or show idle
+      if (!hasData) {
+        if (isPlaying) {
+          // SIMULATE BEAT (Fallback)
+          simOffset += 0.1;
+          for (let i = 0; i < bufferLength; i++) {
+            // Create a fake wave pattern
+            const value = Math.sin(i * 0.2 + simOffset) * 50 +
+              Math.sin(i * 0.1 - simOffset * 2) * 30 + 100;
+            dataArray[i] = value;
+          }
+        } else {
+          // IDLE STATE (Gentle ripple)
+          simOffset += 0.05;
+          for (let i = 0; i < bufferLength; i++) {
+            dataArray[i] = Math.sin(i * 0.1 + simOffset) * 10 + 20;
+          }
+        }
+      }
 
-      const barWidth = (width / 40); // Draw 40 bars
+      // DRAWING LOGIC (Mirrored Wave)
+      const barWidth = (width / bufferLength) * 2.5;
       let x = 0;
 
-      // We want to skip the very low frequencies and very high ones to focus on the "beat"
-      // The FFT size is 256, so bin count is 128.
-      // We'll step through the data to get 40 bars.
-      const step = Math.floor(dataArray.length / 50);
+      // Create Cyberpunk Gradient
+      const gradient = ctx.createLinearGradient(0, 0, width, height);
+      gradient.addColorStop(0, '#d946ef'); // Fuchsia
+      gradient.addColorStop(0.5, '#8b5cf6'); // Violet
+      gradient.addColorStop(1, '#06b6d4'); // Cyan
 
-      for (let i = 0; i < 40; i++) {
-        const dataIndex = i * step;
-        const value = dataArray[dataIndex] || 0;
+      ctx.fillStyle = gradient;
+      ctx.shadowBlur = 15;
+      ctx.shadowColor = "rgba(139, 92, 246, 0.5)";
 
-        // Scale value to height
-        const barHeight = (value / 255) * height;
+      // Draw from center out
+      const centerX = width / 2;
 
-        // Gradient color based on height
-        const gradient = ctx.createLinearGradient(0, height - barHeight, 0, height);
-        gradient.addColorStop(0, '#38bdf8'); // sky-400
-        gradient.addColorStop(1, '#ffffff');
+      for (let i = 0; i < bufferLength; i++) {
+        // Focus on bass/mids for better visual effect
+        // If simulating, use direct index. If real, skip high freqs.
+        const index = hasData ? Math.floor(i * (bufferLength / 60)) : i;
+        const value = dataArray[index] || 0;
 
-        ctx.fillStyle = gradient;
+        const barHeight = (value / 255) * height * 0.8; // Scale height
 
-        // Draw rounded rect manually or just rect
-        ctx.fillRect(x, height - barHeight, barWidth - 2, barHeight);
+        // Right side
+        ctx.fillRect(centerX + x, (height - barHeight) / 2, barWidth, barHeight);
+        // Left side (Mirror)
+        ctx.fillRect(centerX - x - barWidth, (height - barHeight) / 2, barWidth, barHeight);
 
-        x += barWidth;
+        x += barWidth + 1;
+        if (x > centerX) break;
       }
     };
 
@@ -89,7 +118,7 @@ const AudioVisualizer = () => {
     };
   }, [analyser, isPlaying]);
 
-  return <canvas ref={canvasRef} width={300} height={80} className="w-full h-full" />;
+  return <canvas ref={canvasRef} width={400} height={100} className="w-full h-full opacity-90" />;
 };
 
 export default function Home() {

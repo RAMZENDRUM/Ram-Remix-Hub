@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { writeFile, mkdir } from "fs/promises";
-import path from "path";
 import { getServerSession } from "next-auth";
+import cloudinary from "@/lib/cloudinary";
 import { authOptions } from "@/lib/auth";
 
 export async function GET(req: NextRequest) {
@@ -45,29 +44,41 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: "Required fields missing" }, { status: 400 });
         }
 
+        // Helper to upload to Cloudinary
+        const uploadToCloudinary = async (file: File, folder: string, resourceType: 'auto' | 'image' | 'video' | 'raw' = 'auto') => {
+            const arrayBuffer = await file.arrayBuffer();
+            const buffer = Buffer.from(arrayBuffer);
+
+            return new Promise<string>((resolve, reject) => {
+                const uploadStream = cloudinary.uploader.upload_stream(
+                    {
+                        folder: `ram-remix-hub/${folder}`,
+                        resource_type: resourceType,
+                    },
+                    (error, result) => {
+                        if (error) {
+                            console.error("Cloudinary upload error:", error);
+                            reject(error);
+                        } else {
+                            resolve(result?.secure_url || "");
+                        }
+                    }
+                );
+                uploadStream.end(buffer);
+            });
+        };
+
         let audioUrl = "";
         let coverImageUrl = "";
 
-        // Handle Audio Upload
+        // Upload Audio
         if (audioFile && audioFile.size > 0) {
-            const buffer = Buffer.from(await audioFile.arrayBuffer());
-            const filename = `${Date.now()}-${audioFile.name.replace(/\s/g, '-')}`;
-            const uploadDir = path.join(process.cwd(), "public/uploads/audio");
-
-            await mkdir(uploadDir, { recursive: true });
-            await writeFile(path.join(uploadDir, filename), buffer);
-            audioUrl = `/uploads/audio/${filename}`;
+            audioUrl = await uploadToCloudinary(audioFile, "audio", "video"); // 'video' handles audio in Cloudinary
         }
 
-        // Handle Cover Image Upload
+        // Upload Cover Image
         if (coverImageFile && coverImageFile.size > 0) {
-            const buffer = Buffer.from(await coverImageFile.arrayBuffer());
-            const filename = `${Date.now()}-${coverImageFile.name.replace(/\s/g, '-')}`;
-            const uploadDir = path.join(process.cwd(), "public/uploads/covers");
-
-            await mkdir(uploadDir, { recursive: true });
-            await writeFile(path.join(uploadDir, filename), buffer);
-            coverImageUrl = `/uploads/covers/${filename}`;
+            coverImageUrl = await uploadToCloudinary(coverImageFile, "covers", "image");
         }
 
         const track = await prisma.track.create({

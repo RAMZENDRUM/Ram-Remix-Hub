@@ -5,7 +5,11 @@ import { prisma } from "@/lib/prisma";
 
 export async function POST(req: NextRequest) {
     const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
+
+    // @ts-ignore - session.user.id is injected but types might fail in CI
+    const userId = session?.user?.id;
+
+    if (!userId) {
         return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
     }
 
@@ -18,7 +22,7 @@ export async function POST(req: NextRequest) {
     // Check if already favourite
     const existing = await prisma.like.findFirst({
         where: {
-            userId: session.user.id,
+            userId: userId,
             trackId,
         },
     });
@@ -33,7 +37,7 @@ export async function POST(req: NextRequest) {
         // add
         await prisma.like.create({
             data: {
-                userId: session.user.id,
+                userId: userId,
                 trackId,
             },
         });

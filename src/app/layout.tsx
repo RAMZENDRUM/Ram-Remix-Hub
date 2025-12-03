@@ -18,11 +18,16 @@ import { Inter } from "next/font/google";
 
 const inter = Inter({ subsets: ["latin"] });
 
-export default function RootLayout({
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const session = await getServerSession(authOptions);
+
   return (
     <html lang="en">
       <body className={`${inter.className} bg-black text-white relative`}>
@@ -31,11 +36,11 @@ export default function RootLayout({
           <Providers>
             <PlayerProvider>
               <ToastProvider>
-                <Navbar />
+                {session && <Navbar />}
                 <main style={{ minHeight: '100vh', paddingTop: '64px', paddingBottom: '100px' }}>
                   {children}
                 </main>
-                <GlobalPlayer />
+                {session && <GlobalPlayer />}
                 <SiteFooter />
               </ToastProvider>
             </PlayerProvider>

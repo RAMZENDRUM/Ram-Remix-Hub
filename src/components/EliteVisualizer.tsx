@@ -6,7 +6,7 @@ import { usePlayer } from "@/context/PlayerContext";
 type EliteVisualizerProps = {
     coverUrl?: string;
     size?: number;
-    audioRef?: React.RefObject<HTMLAudioElement | null>; // Optional to match interface
+    audioRef?: React.RefObject<HTMLAudioElement | null>; // Kept for interface compatibility
 };
 
 const EliteVisualizer: React.FC<EliteVisualizerProps> = ({
@@ -43,17 +43,16 @@ const EliteVisualizer: React.FC<EliteVisualizerProps> = ({
 
         const bufferLength = analyser ? analyser.frequencyBinCount : 2048;
         const dataArray = new Uint8Array(bufferLength);
-        const BAR_COUNT = 96;
-        const prevBars = new Array(BAR_COUNT).fill(0);
+
+        // Liquid Ring Config
+        const pointCount = 256; // resolution of the ring
+        const prevOffsets = new Array(pointCount).fill(0);
 
         const center = { x: size / 2, y: size / 2 };
-        const innerRadius = size * 0.27;
-        const ringRadius = size * 0.34;
-        const maxBarLen = size * 0.16;
+        const baseRadius = size * 0.32;   // where the ring sits
+        const maxOffset = size * 0.09;    // how far peaks can go
+        const innerImageRadius = size * 0.22;
 
-        // Shockwave state
-        let shockwaveRadius = 0;
-        let shockwaveAlpha = 0;
         let simOffset = 0;
 
         const renderFrame = () => {
@@ -63,173 +62,137 @@ const EliteVisualizer: React.FC<EliteVisualizerProps> = ({
                 if (dataArray.some(v => v > 0)) hasData = true;
             }
 
-            // Helper to get average energy of a range
-            const getEnergy = (start: number, end: number) => {
-                if (!hasData) return 0;
-                let sum = 0;
-                let count = 0;
-                for (let i = start; i < end; i++) {
-                    sum += dataArray[i];
-                    count++;
-                }
-                return count ? sum / (count * 255) : 0;
-            };
-
-            // Frequency bands
-            let bass = 0, mids = 0, highs = 0;
+            // Calculate average volume for breathing effect
+            let volSum = 0;
             if (hasData) {
-                bass = getEnergy(0, 40);
-                mids = getEnergy(40, 140);
-                highs = getEnergy(140, 256);
+                // Only check the first ~half of bins where most energy is
+                const checkLen = Math.floor(bufferLength / 2);
+                for (let i = 0; i < checkLen; i++) volSum += dataArray[i];
+                volSum = volSum / checkLen / 255;
             } else if (isPlaying) {
-                // Simulation
+                // Sim volume
                 simOffset += 0.05;
-                bass = (Math.sin(simOffset) + 1) * 0.3;
-                mids = (Math.cos(simOffset * 1.5) + 1) * 0.2;
-                highs = (Math.sin(simOffset * 2) + 1) * 0.1;
+                volSum = (Math.sin(simOffset) + 1) * 0.15;
             }
+            const avgVol = volSum; // 0-1
 
-            const bassPower = Math.pow(bass, 2.2);
-            const midPower = Math.pow(mids, 1.6);
-            const highPower = Math.pow(highs, 1.2);
-
-            // Clear canvas
             ctx.clearRect(0, 0, size, size);
 
-            // Trigger Bass Shockwave
-            if (bassPower > 0.32 && shockwaveAlpha < 0.05) {
-                shockwaveRadius = ringRadius + maxBarLen * 0.3;
-                shockwaveAlpha = 0.8;
-            }
-
-            // Background Glow
-            const totalPower = bassPower * 1.4 + midPower * 0.8 + highPower * 0.4;
-            const glowRadius = innerRadius + maxBarLen * (0.45 + totalPower);
-
-            const glowGradient = ctx.createRadialGradient(
-                center.x, center.y, innerRadius * 0.3,
+            // 1. Background Soft Glow
+            const glowRadius = baseRadius + maxOffset * (0.4 + avgVol * 0.8);
+            const glowGrad = ctx.createRadialGradient(
+                center.x, center.y, innerImageRadius * 0.3,
                 center.x, center.y, glowRadius
             );
-            glowGradient.addColorStop(0, "rgba(255,255,255,0.06)");
-            glowGradient.addColorStop(0.45, "rgba(129, 140, 248, 0.5)"); // Indigo/Purple
-            glowGradient.addColorStop(1, "rgba(0,0,0,0)");
+            glowGrad.addColorStop(0, "rgba(59,130,246,0.35)");  // Blue
+            glowGrad.addColorStop(0.5, "rgba(129,140,248,0.4)"); // Indigo
+            glowGrad.addColorStop(1, "rgba(8,47,73,0)");         // Fade
 
-            ctx.fillStyle = glowGradient;
+            ctx.fillStyle = glowGrad;
             ctx.beginPath();
             ctx.arc(center.x, center.y, glowRadius, 0, Math.PI * 2);
             ctx.fill();
 
-            // Center Cover Art
+            // 2. Center Cover Image
             const img = imageRef.current;
             if (img && img.complete) {
                 ctx.save();
                 ctx.beginPath();
-                ctx.arc(center.x, center.y, innerRadius, 0, Math.PI * 2);
+                ctx.arc(center.x, center.y, innerImageRadius, 0, Math.PI * 2);
                 ctx.closePath();
                 ctx.clip();
-                ctx.drawImage(img, center.x - innerRadius, center.y - innerRadius, innerRadius * 2, innerRadius * 2);
+                ctx.drawImage(img, center.x - innerImageRadius, center.y - innerImageRadius, innerImageRadius * 2, innerImageRadius * 2);
                 ctx.restore();
             } else {
                 ctx.beginPath();
-                ctx.arc(center.x, center.y, innerRadius, 0, Math.PI * 2);
+                ctx.arc(center.x, center.y, innerImageRadius, 0, Math.PI * 2);
                 ctx.fillStyle = "#171717";
                 ctx.fill();
             }
 
-            // Base Neon Ring
-            const ringGradient = ctx.createLinearGradient(
-                center.x - innerRadius, center.y - innerRadius,
-                center.x + innerRadius, center.y + innerRadius
-            );
-            ringGradient.addColorStop(0, "#a855f7"); // Purple
-            ringGradient.addColorStop(0.5, "#22c55e"); // Green
-            ringGradient.addColorStop(1, "#ef4444"); // Red
+            // 3. Liquid Ring Calculation
+            const points: { x: number; y: number }[] = [];
+            for (let i = 0; i < pointCount; i++) {
+                let raw = 0;
 
-            ctx.lineWidth = 4;
-            ctx.strokeStyle = ringGradient;
-            ctx.shadowColor = "rgba(168,85,247,0.65)";
-            ctx.shadowBlur = 18;
-            ctx.beginPath();
-            ctx.arc(center.x, center.y, ringRadius, 0, Math.PI * 2);
-            ctx.stroke();
-            ctx.shadowBlur = 0;
-
-            // Radial Bars
-            const step = Math.floor(bufferLength / BAR_COUNT);
-
-            for (let i = 0; i < BAR_COUNT; i++) {
-                let avg = 0;
                 if (hasData) {
-                    let sum = 0;
-                    for (let j = 0; j < step; j++) {
-                        const idx = i * step + j;
-                        if (idx < bufferLength) sum += dataArray[idx];
-                    }
-                    avg = sum / (step || 1) / 255;
+                    // Map FFT -> Radial Offsets
+                    // We use the lower 80% of the spectrum
+                    const freqIndex = Math.floor((i / pointCount) * bufferLength * 0.8);
+                    raw = dataArray[freqIndex] / 255;
                 } else if (isPlaying) {
-                    const angle = (i / BAR_COUNT) * Math.PI * 2;
-                    avg = (Math.sin(angle * 5 + simOffset) * 0.5 + 0.5) * 0.3;
+                    // Simulation
+                    const angle = (i / pointCount) * Math.PI * 2;
+                    raw = (Math.sin(angle * 4 + simOffset) * 0.5 + 0.5) * 0.4;
                 }
 
-                const positionFactor = i / BAR_COUNT; // 0 (low) -> 1 (high)
+                let shaped = Math.pow(raw, 1.8); // Emphasise peaks
 
-                // Emphasis
-                const emphasis = 1.1 * bassPower * (1 - positionFactor) + 0.7 * midPower + 0.5 * highPower * positionFactor;
-                let value = Math.pow(avg, 1.7) + emphasis * 0.35;
+                // Smooth with previous value
+                const prev = prevOffsets[i] || 0;
+                const smoothed = prev + (shaped - prev) * 0.45;
+                prevOffsets[i] = smoothed;
 
-                // Smoothing
-                const prev = prevBars[i] || 0;
-                const smoothed = prev + (value - prev) * 0.4;
-                prevBars[i] = smoothed;
+                const offset = maxOffset * smoothed;
+                const radius = baseRadius + offset;
 
-                const barLen = maxBarLen * Math.min(smoothed, 1.4);
-                const angle = (i / BAR_COUNT) * Math.PI * 2 - Math.PI / 2;
+                const angle = (i / pointCount) * Math.PI * 2 - Math.PI / 2;
+                const x = center.x + radius * Math.cos(angle);
+                const y = center.y + radius * Math.sin(angle);
+                points.push({ x, y });
+            }
 
-                const x0 = center.x + ringRadius * Math.cos(angle);
-                const y0 = center.y + ringRadius * Math.sin(angle);
-                const x1 = center.x + (ringRadius + barLen) * Math.cos(angle);
-                const y1 = center.y + (ringRadius + barLen) * Math.sin(angle);
+            // Close the ring
+            if (points.length > 0) {
+                points.push(points[0], points[1], points[2]);
+            }
 
-                // Color by band: Low=Purple, Mid=Green, High=Red
-                let startColor, endColor;
-                if (positionFactor < 0.33) { // Bass
-                    startColor = "rgba(147, 51, 234, 0.4)"; // Purple
-                    endColor = "rgba(216, 180, 254, 1)";
-                } else if (positionFactor < 0.66) { // Mids
-                    startColor = "rgba(34, 197, 94, 0.45)"; // Green
-                    endColor = "rgba(190, 242, 100, 1)";
-                } else { // Highs
-                    startColor = "rgba(239, 68, 68, 0.45)"; // Red
-                    endColor = "rgba(254, 202, 202, 1)";
+            // Ring Gradient (Purple <-> Blue)
+            const ringGrad = ctx.createLinearGradient(
+                center.x - baseRadius, center.y - baseRadius,
+                center.x + baseRadius, center.y + baseRadius
+            );
+            ringGrad.addColorStop(0, "#22d3ee");  // Cyan-Blue
+            ringGrad.addColorStop(0.5, "#6366f1"); // Indigo
+            ringGrad.addColorStop(1, "#a855f7");   // Purple
+
+            // 4. Draw Outer Soft Ring
+            ctx.save();
+            ctx.lineJoin = "round";
+            ctx.lineCap = "round";
+            ctx.beginPath();
+            if (points.length > 0) {
+                ctx.moveTo(points[0].x, points[0].y);
+                for (let i = 1; i < points.length; i++) {
+                    ctx.lineTo(points[i].x, points[i].y);
                 }
-
-                const barGradient = ctx.createLinearGradient(x0, y0, x1, y1);
-                barGradient.addColorStop(0, startColor);
-                barGradient.addColorStop(1, endColor);
-
-                ctx.lineWidth = 2;
-                ctx.strokeStyle = barGradient;
-                ctx.beginPath();
-                ctx.moveTo(x0, y0);
-                ctx.lineTo(x1, y1);
-                ctx.stroke();
             }
+            ctx.closePath();
+            ctx.strokeStyle = ringGrad;
+            ctx.lineWidth = 14;
+            ctx.shadowColor = "rgba(96,165,250,0.8)";
+            ctx.shadowBlur = 28;
+            ctx.globalAlpha = 0.65 + avgVol * 0.3;
+            ctx.stroke();
+            ctx.restore();
 
-            // Draw Bass Shockwave
-            if (shockwaveAlpha > 0.01) {
-                ctx.save();
-                ctx.beginPath();
-                ctx.arc(center.x, center.y, shockwaveRadius, 0, Math.PI * 2);
-                ctx.strokeStyle = `rgba(74, 222, 128, ${shockwaveAlpha})`; // Emerald
-                ctx.lineWidth = 3;
-                ctx.shadowColor = `rgba(74, 222, 128, ${shockwaveAlpha})`;
-                ctx.shadowBlur = 24;
-                ctx.stroke();
-                ctx.restore();
-
-                shockwaveRadius += 2.4;
-                shockwaveAlpha *= 0.9;
+            // 5. Draw Inner Sharper Ring
+            ctx.save();
+            ctx.lineJoin = "round";
+            ctx.lineCap = "round";
+            ctx.beginPath();
+            if (points.length > 0) {
+                ctx.moveTo(points[0].x, points[0].y);
+                for (let i = 1; i < points.length; i++) {
+                    ctx.lineTo(points[i].x, points[i].y);
+                }
             }
+            ctx.closePath();
+            ctx.strokeStyle = "rgba(191, 219, 254, 0.9)";
+            ctx.lineWidth = 3;
+            ctx.globalAlpha = 0.9;
+            ctx.stroke();
+            ctx.restore();
 
             frameRef.current = requestAnimationFrame(renderFrame);
         };

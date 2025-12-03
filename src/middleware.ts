@@ -1,23 +1,22 @@
 import { withAuth } from "next-auth/middleware";
-import { NextResponse } from "next/server";
 
-export default withAuth(
-    function middleware(req) {
-        // strict admin check for /admin routes
-        if (req.nextUrl.pathname.startsWith("/admin")) {
-            const email = req.nextauth.token?.email;
-            if (email !== "ramzendrum@gmail.com") {
-                return NextResponse.redirect(new URL("/", req.url));
-            }
-        }
+export default withAuth({
+    pages: {
+        signIn: "/auth", // Redirect to this page if not authenticated
     },
-    {
-        callbacks: {
-            authorized: ({ token }) => !!token,
-        },
-    }
-);
+});
 
 export const config = {
-    matcher: ["/admin/:path*", "/profile/:path*"],
+    matcher: [
+        /*
+         * Match all request paths except for the ones starting with:
+         * - auth (login page)
+         * - api/auth (NextAuth API routes)
+         * - _next/static (static files)
+         * - _next/image (image optimization files)
+         * - favicon.ico (favicon file)
+         * - public folder content (if any, though usually served statically)
+         */
+        "/((?!auth|api/auth|_next/static|_next/image|favicon.ico).*)",
+    ],
 };

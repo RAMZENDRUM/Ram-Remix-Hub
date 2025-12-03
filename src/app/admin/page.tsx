@@ -11,6 +11,7 @@ import { Trash2 } from 'lucide-react';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { useToast } from '@/context/ToastContext';
 import { CustomDropdown } from '@/components/ui/CustomDropdown';
+import { InlineActionsDropdown } from "@/components/ui/inline-actions-dropdown";
 
 interface Track {
     id: string;
@@ -190,24 +191,27 @@ export default function AdminDashboard() {
                         <h2 className="text-xl md:text-2xl font-semibold text-white tracking-tight">
                             {editingTrackId ? 'Edit Track' : 'Upload New Remix'}
                         </h2>
-                        <button
-                            type="button"
-                            onClick={() => {
-                                setShowUpload(false);
-                                setEditingTrackId(null);
-                                setFormData({
-                                    artist: '',
-                                    title: '',
-                                    description: '',
-                                    genre: '',
-                                    type: 'Remix',
-                                    unlisted: false,
-                                });
-                            }}
-                            className="inline-flex items-center rounded-full border border-neutral-600/70 bg-neutral-900/60 px-3 py-1.5 text-xs font-medium text-neutral-200 hover:border-neutral-300 hover:bg-neutral-800/80 transition-colors"
-                        >
-                            Cancel
-                        </button>
+                        <div className="flex items-center gap-3">
+                            <InlineActionsDropdown />
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setShowUpload(false);
+                                    setEditingTrackId(null);
+                                    setFormData({
+                                        artist: '',
+                                        title: '',
+                                        description: '',
+                                        genre: '',
+                                        type: 'Remix',
+                                        unlisted: false,
+                                    });
+                                }}
+                                className="inline-flex items-center rounded-full border border-neutral-600/70 bg-neutral-900/60 px-3 py-1.5 text-xs font-medium text-neutral-200 hover:border-neutral-300 hover:bg-neutral-800/80 transition-colors"
+                            >
+                                Cancel
+                            </button>
+                        </div>
                     </div>
 
                     <form onSubmit={handleUpload} className="space-y-4">
@@ -394,19 +398,7 @@ export default function AdminDashboard() {
 
                                 {/* Right side: buttons */}
                                 <div className="flex items-center gap-2">
-                                    <button
-                                        onClick={() => onEditClick(track)}
-                                        className="inline-flex items-center gap-1.5 rounded-full border border-blue-500/70 bg-blue-600/80 px-3 py-1 text-xs font-semibold text-white shadow-md shadow-blue-900/50 transition-all hover:bg-blue-500 hover:shadow-blue-500/80 active:scale-95"
-                                    >
-                                        <span className="hidden sm:inline">Edit</span>
-                                    </button>
-                                    <button
-                                        onClick={() => onDeleteClick(track)}
-                                        className="inline-flex items-center gap-1.5 rounded-full border border-red-500/70 bg-red-600/80 px-3 py-1 text-xs font-semibold text-white shadow-md shadow-red-900/50 transition-all hover:bg-red-500 hover:shadow-red-500/80 active:scale-95"
-                                    >
-                                        <Trash2 className="h-3.5 w-3.5" />
-                                        <span className="hidden sm:inline">Delete</span>
-                                    </button>
+                                    <InlineActionsDropdown className="ml-auto" />
                                 </div>
                             </li>
                         ))}

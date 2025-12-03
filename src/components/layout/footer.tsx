@@ -30,7 +30,7 @@ const currentYear = new Date().getFullYear();
 export function SiteFooter() {
     return (
         <footer className="w-full bg-black py-12 md:py-16 mt-auto relative">
-            <div className="absolute top-0 left-0 w-full flex justify-center -translate-y-1/2 pointer-events-none">
+            <div className="absolute top-0 left-0 w-full flex justify-center -translate-y-1/2">
                 <WavePath className="w-full max-w-6xl" />
             </div>
             <div className="mx-auto w-full max-w-6xl px-4 md:px-6">

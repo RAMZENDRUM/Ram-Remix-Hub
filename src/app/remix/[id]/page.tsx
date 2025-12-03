@@ -9,6 +9,7 @@ import { RatingModal } from '@/components/ui/RatingModal';
 import { useToast } from '@/context/ToastContext';
 import { StarButton } from '@/components/ui/star-button';
 import { FavoriteButton } from '@/components/ui/favorite-button';
+import { InlineActionsDropdown } from "@/components/ui/inline-actions-dropdown";
 
 interface Track {
     id: string;
@@ -181,6 +182,7 @@ export default function RemixDetail({ params }: { params: Promise<{ id: string }
                         <button className={styles.actionButton} aria-label="Share" onClick={handleShare}>
                             <Share2 size={20} />
                         </button>
+                        <InlineActionsDropdown />
                     </div>
                 </div>
             </div>

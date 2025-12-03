@@ -7,18 +7,21 @@ type WWavePathProps = React.ComponentProps<'div'>;
 
 export function WavePath({ className, ...props }: WWavePathProps) {
     const path = useRef<SVGPathElement>(null);
+    const container = useRef<HTMLDivElement>(null);
     let progress = 0;
-    let x = 0.2;
+    let x = 0.5;
     let time = Math.PI / 2;
     let reqId: number | null = null;
 
     useEffect(() => {
         setPath(progress);
+        window.addEventListener('resize', () => setPath(progress));
+        return () => window.removeEventListener('resize', () => setPath(progress));
     }, []);
 
     const setPath = (progress: number) => {
-        const width = window.innerWidth * 0.7;
-        if (path.current) {
+        if (container.current && path.current) {
+            const width = container.current.offsetWidth;
             path.current.setAttributeNS(
                 null,
                 'd',
@@ -38,7 +41,7 @@ export function WavePath({ className, ...props }: WWavePathProps) {
 
     const manageMouseMove = (e: React.MouseEvent) => {
         const { movementY, clientX } = e;
-        if (path.current) {
+        if (path.current && container.current) {
             const pathBound = path.current.getBoundingClientRect();
             x = (clientX - pathBound.left) / pathBound.width;
             progress += movementY;
@@ -68,7 +71,7 @@ export function WavePath({ className, ...props }: WWavePathProps) {
     };
 
     return (
-        <div className={cn('relative h-px w-[70vw]', className)} {...props}>
+        <div ref={container} className={cn('relative h-px w-full', className)} {...props}>
             <div
                 onMouseEnter={manageMouseEnter}
                 onMouseMove={manageMouseMove}

@@ -105,34 +105,81 @@ export default function AdminDashboard() {
         setIsUploading(true);
 
         try {
-            const data = new FormData();
-            data.append('artist', formData.artist);
-            data.append('title', formData.title);
-            data.append('description', formData.description);
-            data.append('genre', formData.genre);
-            data.append('type', formData.type);
-            data.append('unlisted', String(formData.unlisted));
+            let audioUrl = null;
+            let coverImageUrl = null;
 
+            // Helper to upload file to Cloudinary
+            const uploadFile = async (file: File, folder: string, resourceType: 'video' | 'image') => {
+                // 1. Get signature
+                const signRes = await fetch('/api/admin/sign-cloudinary', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ folder: `ram-remix-hub/${folder}` }),
+                });
+
+                if (!signRes.ok) throw new Error('Failed to sign upload request');
+                const { signature, timestamp, cloudName, apiKey } = await signRes.json();
+
+                // 2. Upload to Cloudinary
+                const formData = new FormData();
+                formData.append('file', file);
+                formData.append('api_key', apiKey);
+                formData.append('timestamp', timestamp);
+                formData.append('signature', signature);
+                formData.append('folder', `ram-remix-hub/${folder}`);
+
+                const uploadRes = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/${resourceType}/upload`, {
+                    method: 'POST',
+                    body: formData,
+                });
+
+                if (!uploadRes.ok) {
+                    const err = await uploadRes.json();
+                    throw new Error(err.error?.message || 'Cloudinary upload failed');
+                }
+
+                const data = await uploadRes.json();
+                return data.secure_url;
+            };
+
+            // Upload Audio if present
             if (audioFile) {
-                data.append('audioFile', audioFile);
+                audioUrl = await uploadFile(audioFile, 'audio', 'video'); // 'video' resource_type for audio
             }
 
+            // Upload Cover if present
             if (coverImageFile) {
-                data.append('coverImageFile', coverImageFile);
+                coverImageUrl = await uploadFile(coverImageFile, 'covers', 'image');
             }
+
+            // Prepare payload
+            const payload = {
+                artist: formData.artist,
+                title: formData.title,
+                description: formData.description,
+                genre: formData.genre,
+                type: formData.type,
+                unlisted: formData.unlisted,
+                audioUrl,       // will be null if not updated/uploaded
+                coverImageUrl,  // will be null if not updated/uploaded
+            };
 
             let res;
             if (editingTrackId) {
                 // Update existing track
                 res = await fetch(`/api/admin/tracks/${editingTrackId}`, {
                     method: 'PUT',
-                    body: data,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload),
                 });
             } else {
                 // Create new track
+                if (!audioUrl) throw new Error("Audio file is required for new uploads");
+
                 res = await fetch('/api/admin/tracks', {
                     method: 'POST',
-                    body: data,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload),
                 });
             }
 
@@ -158,6 +205,7 @@ export default function AdminDashboard() {
             fetchTracks();
 
         } catch (error: any) {
+            console.error("Upload flow error:", error);
             pushToast("error", error.message);
         } finally {
             setIsUploading(false);

@@ -77,7 +77,7 @@ export async function PUT(
         }
 
         const { id } = await params;
-        const formData = await req.formData();
+        const body = await req.json();
 
         // Get existing track
         const existingTrack = await prisma.track.findUnique({
@@ -88,38 +88,16 @@ export async function PUT(
             return NextResponse.json({ error: "Track not found" }, { status: 404 });
         }
 
-        const artist = formData.get("artist") as string;
-        const title = formData.get("title") as string;
-        const description = formData.get("description") as string;
-        const genre = formData.get("genre") as string;
-        const type = formData.get("type") as string;
-        const unlisted = formData.get("unlisted") === "true";
-
-        const audioFile = formData.get("audioFile") as File | null;
-        const coverImageFile = formData.get("coverImageFile") as File | null;
-
-        let audioUrl = existingTrack.audioUrl;
-        let coverImageUrl = existingTrack.coverImageUrl;
-
-        // Helper to upload to Cloudinary (reused logic)
-        const uploadToCloudinary = async (file: File, folder: string, resourceType: 'auto' | 'image' | 'video' | 'raw' = 'auto') => {
-            const arrayBuffer = await file.arrayBuffer();
-            const buffer = Buffer.from(arrayBuffer);
-
-            return new Promise<string>((resolve, reject) => {
-                const uploadStream = cloudinary.uploader.upload_stream(
-                    {
-                        folder: `ram-remix-hub/${folder}`,
-                        resource_type: resourceType,
-                    },
-                    (error, result) => {
-                        if (error) reject(error);
-                        else resolve(result?.secure_url || "");
-                    }
-                );
-                uploadStream.end(buffer);
-            });
-        };
+        const {
+            artist,
+            title,
+            description,
+            genre,
+            type,
+            unlisted,
+            audioUrl,       // New URL or null
+            coverImageUrl   // New URL or null
+        } = body;
 
         // Helper to delete from Cloudinary
         const deleteFromCloudinary = async (url: string, resourceType: 'image' | 'video') => {
@@ -136,22 +114,25 @@ export async function PUT(
             }
         };
 
+        let finalAudioUrl = existingTrack.audioUrl;
+        let finalCoverImageUrl = existingTrack.coverImageUrl;
+
         // Handle Audio Replacement
-        if (audioFile && audioFile.size > 0) {
-            // Delete old audio
-            await deleteFromCloudinary(existingTrack.audioUrl, 'video');
-            // Upload new audio
-            audioUrl = await uploadToCloudinary(audioFile, "audio", "video");
+        if (audioUrl) {
+            // Delete old audio if it exists and is different
+            if (existingTrack.audioUrl && existingTrack.audioUrl !== audioUrl) {
+                await deleteFromCloudinary(existingTrack.audioUrl, 'video');
+            }
+            finalAudioUrl = audioUrl;
         }
 
         // Handle Cover Image Replacement
-        if (coverImageFile && coverImageFile.size > 0) {
-            // Delete old cover if exists
-            if (existingTrack.coverImageUrl) {
+        if (coverImageUrl) {
+            // Delete old cover if exists and is different
+            if (existingTrack.coverImageUrl && existingTrack.coverImageUrl !== coverImageUrl) {
                 await deleteFromCloudinary(existingTrack.coverImageUrl, 'image');
             }
-            // Upload new cover
-            coverImageUrl = await uploadToCloudinary(coverImageFile, "covers", "image");
+            finalCoverImageUrl = coverImageUrl;
         }
 
         const updatedTrack = await prisma.track.update({
@@ -162,9 +143,9 @@ export async function PUT(
                 description,
                 genre,
                 type,
-                isUnlisted: unlisted,
-                audioUrl,
-                coverImageUrl,
+                isUnlisted: Boolean(unlisted),
+                audioUrl: finalAudioUrl,
+                coverImageUrl: finalCoverImageUrl,
             },
         });
 

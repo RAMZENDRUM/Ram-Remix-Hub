@@ -25,6 +25,8 @@ import { GlobalSpotlight } from "@/components/ui/global-spotlight";
 
 import { RainBackground } from "@/components/ui/rain-background";
 
+import { LanguageProvider } from "@/context/LanguageContext";
+
 export default async function RootLayout({
   children,
 }: Readonly<{
@@ -54,12 +56,14 @@ export default async function RootLayout({
           <Providers>
             <PlayerProvider>
               <ToastProvider>
-                {session && <Navbar />}
-                <main style={{ minHeight: '100vh', paddingTop: '64px', paddingBottom: '100px' }}>
-                  {children}
-                </main>
-                {session && <GlobalPlayer />}
-                <SiteFooter />
+                <LanguageProvider>
+                  {session && <Navbar />}
+                  <main style={{ minHeight: '100vh', paddingTop: '64px', paddingBottom: '100px' }}>
+                    {children}
+                  </main>
+                  {session && <GlobalPlayer />}
+                  <SiteFooter />
+                </LanguageProvider>
               </ToastProvider>
             </PlayerProvider>
           </Providers>

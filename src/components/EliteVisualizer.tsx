@@ -44,12 +44,6 @@ const EliteVisualizer: React.FC<EliteVisualizerProps> = ({
         const bufferLength = analyser ? analyser.frequencyBinCount : 128;
         const dataArray = new Uint8Array(bufferLength);
 
-        // Config
-        const BAR_COUNT = 64;
-        const CENTER = size / 2;
-        const RADIUS = size * 0.25;
-        const MAX_BAR_HEIGHT = size * 0.2;
-
         const renderFrame = () => {
             // 1. Get Data
             if (analyser && isPlaying) {
@@ -61,70 +55,142 @@ const EliteVisualizer: React.FC<EliteVisualizerProps> = ({
                 }
             }
 
-            ctx.clearRect(0, 0, size, size);
+            const width = size;
+            const height = size;
+            const centerX = width / 2;
+            const centerY = height / 2;
 
-            // 2. Draw Circular Visualizer Background (Purple)
-            // Soft purple fill
+            ctx.clearRect(0, 0, width, height);
+
+            const numPoints = 180;                         // smooth circle, no bars
+            const baseRadius = Math.min(width, height) * 0.25; // Adjusted radius to fit container
+
+            // Soft purple inner glow
             ctx.beginPath();
-            ctx.arc(CENTER, CENTER, RADIUS * 1.4, 0, Math.PI * 2);
+            ctx.arc(centerX, centerY, baseRadius * 1.2, 0, Math.PI * 2);
             ctx.fillStyle = "rgba(168, 85, 255, 0.05)";
             ctx.fill();
 
-            // Purple Glow Gradient
-            const glowGradient = ctx.createRadialGradient(CENTER, CENTER, RADIUS, CENTER, CENTER, RADIUS * 1.5);
-            glowGradient.addColorStop(0, "rgba(168, 85, 255, 0.2)");
-            glowGradient.addColorStop(1, "rgba(109, 40, 217, 0)");
-            ctx.fillStyle = glowGradient;
-            ctx.beginPath();
-            ctx.arc(CENTER, CENTER, RADIUS * 1.5, 0, Math.PI * 2);
-            ctx.fill();
-
-            // 3. Draw Cover Art (Circular)
+            // Draw Cover Art (Circular) - Added back to keep context
             ctx.save();
             ctx.beginPath();
-            ctx.arc(CENTER, CENTER, RADIUS, 0, Math.PI * 2);
+            ctx.arc(centerX, centerY, baseRadius, 0, Math.PI * 2);
             ctx.closePath();
             ctx.clip();
 
             if (imageRef.current && imageRef.current.complete) {
-                ctx.drawImage(imageRef.current, CENTER - RADIUS, CENTER - RADIUS, RADIUS * 2, RADIUS * 2);
+                ctx.drawImage(imageRef.current, centerX - baseRadius, centerY - baseRadius, baseRadius * 2, baseRadius * 2);
             } else {
                 ctx.fillStyle = "#1a1a1a";
                 ctx.fill();
             }
             ctx.restore();
 
-            // 4. Draw Radial Bars (Purple Spectrum)
-            // We'll use a subset of the data array to match BAR_COUNT
-            const step = Math.floor(bufferLength / BAR_COUNT);
 
-            for (let i = 0; i < BAR_COUNT; i++) {
-                const dataIndex = i * step;
-                const value = dataArray[dataIndex] || 0;
+            const numRings = 3;
+            // Audio reactivity constants (simulated or passed)
+            const audioSensitivity = 5;
+            const audioReactivity = 1.2;
 
-                const percent = value / 255;
-                const barHeight = Math.max(4, percent * MAX_BAR_HEIGHT);
+            for (let ring = 0; ring < numRings; ring++) {
+                const ringRadius = baseRadius * (0.9 + ring * 0.15); // Slightly adjusted start radius
+                const opacity = 0.8 - ring * 0.2;
 
-                const angle = (i / BAR_COUNT) * Math.PI * 2 - Math.PI / 2;
+                ctx.beginPath();
 
-                // Purple hue range: 260 - 280
-                const hue = 260 + (i / BAR_COUNT) * 20;
-                ctx.fillStyle = `hsl(${hue}, 100%, 50%)`;
+                for (let i = 0; i < numPoints; i++) {
+                    // Calculate frequency range for this ring
+                    // We need to map ring index to frequency bands
+                    // Ring 0: Bass/Low Mids
+                    // Ring 1: Mids
+                    // Ring 2: Highs
 
-                ctx.save();
-                ctx.translate(CENTER, CENTER);
-                ctx.rotate(angle);
-                // Draw bar starting from just outside the radius
-                ctx.fillRect(RADIUS + 10, -2, barHeight, 4);
-                ctx.restore();
+                    // Simplified mapping for the visualizer context
+                    const freqRangeStart = Math.floor(
+                        (ring * bufferLength) / (numRings * 2)
+                    );
+                    const freqRangeEnd = Math.floor(
+                        ((ring + 1) * bufferLength) / (numRings * 2)
+                    );
+
+                    const freqRange = Math.max(1, freqRangeEnd - freqRangeStart);
+                    const segmentSize = Math.max(1, Math.floor(freqRange / (numPoints / 10))); // Sample fewer points for smoothness
+
+                    // Get average value for this segment
+                    let sum = 0;
+                    // We map 'i' to the frequency data index
+                    // This is a simplified mapping to distribute points around the circle
+                    const dataIndex = freqRangeStart + Math.floor((i / numPoints) * freqRange);
+
+                    // Use a small window around dataIndex for smoothing
+                    const windowSize = 4;
+                    let count = 0;
+                    for (let w = 0; w < windowSize; w++) {
+                        if (dataIndex + w < bufferLength) {
+                            sum += dataArray[dataIndex + w];
+                            count++;
+                        }
+                    }
+                    const value = count > 0 ? sum / count : 0;
+
+                    const adjustedValue = (value / 255) * (audioSensitivity / 5) * audioReactivity;
+
+                    const dynamicRadius = ringRadius * (1 + adjustedValue * 0.3); // 0.3 scale factor
+                    const angle = (i / numPoints) * Math.PI * 2;
+                    const x = centerX + Math.cos(angle) * dynamicRadius;
+                    const y = centerY + Math.sin(angle) * dynamicRadius;
+
+                    if (i === 0) ctx.moveTo(x, y);
+                    else ctx.lineTo(x, y);
+                }
+
+                ctx.closePath();
+
+                // Purple gradients for each ring
+                let gradient;
+                if (ring === 0) {
+                    gradient = ctx.createRadialGradient(
+                        centerX,
+                        centerY,
+                        ringRadius * 0.8,
+                        centerX,
+                        centerY,
+                        ringRadius * 1.2
+                    );
+                    gradient.addColorStop(0, `rgba(168, 85, 255, ${opacity})`);      // primary purple
+                    gradient.addColorStop(1, `rgba(109, 40, 217, ${opacity * 0.7})`); // darker purple
+                } else if (ring === 1) {
+                    gradient = ctx.createRadialGradient(
+                        centerX,
+                        centerY,
+                        ringRadius * 0.8,
+                        centerX,
+                        centerY,
+                        ringRadius * 1.2
+                    );
+                    gradient.addColorStop(0, `rgba(109, 40, 217, ${opacity})`);
+                    gradient.addColorStop(1, `rgba(233, 213, 255, ${opacity * 0.7})`); // light lavender
+                } else {
+                    gradient = ctx.createRadialGradient(
+                        centerX,
+                        centerY,
+                        ringRadius * 0.8,
+                        centerX,
+                        centerY,
+                        ringRadius * 1.2
+                    );
+                    gradient.addColorStop(0, `rgba(233, 213, 255, ${opacity})`);
+                    gradient.addColorStop(1, `rgba(168, 85, 255, ${opacity * 0.7})`);
+                }
+
+                ctx.strokeStyle = gradient;
+                ctx.lineWidth = 2 + (numRings - ring);
+                ctx.shadowBlur = 15;
+                ctx.shadowColor = "rgba(168, 85, 255, 0.7)";
+                ctx.stroke();
             }
 
-            // 5. Inner Ring (Light Purple)
-            ctx.beginPath();
-            ctx.arc(CENTER, CENTER, RADIUS, 0, Math.PI * 2);
-            ctx.strokeStyle = "rgba(168, 85, 255, 0.5)";
-            ctx.lineWidth = 2;
-            ctx.stroke();
+            ctx.shadowBlur = 0;
 
             frameRef.current = requestAnimationFrame(renderFrame);
         };

@@ -20,7 +20,6 @@ import { formatTime } from "@/lib/formatTime";
 const AudioVisualizer = () => {
   const { analyser, isPlaying } = usePlayer();
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  // Store previous values for smoothing
   const previousDataRef = useRef<number[]>([]);
 
   useEffect(() => {
@@ -31,16 +30,21 @@ const AudioVisualizer = () => {
     if (!ctx) return;
 
     let animationId: number;
-    // FFT size 256 = 128 bins. We'll use a subset for the visualizer.
-    const bufferLength = analyser ? analyser.frequencyBinCount : 128;
+    // Increase FFT size for better resolution (must be power of 2)
+    // 2048 = 1024 frequency bins.
+    // Sample rate is usually 44.1kHz.
+    // Bin width ≈ 44100 / 2048 ≈ 21.5 Hz per bin.
+    if (analyser) analyser.fftSize = 2048;
+
+    const bufferLength = analyser ? analyser.frequencyBinCount : 1024;
     const dataArray = new Uint8Array(bufferLength);
 
-    // Initialize previous data if needed
-    if (previousDataRef.current.length !== 40) {
-      previousDataRef.current = new Array(40).fill(0);
+    const BAR_COUNT = 40;
+    if (previousDataRef.current.length !== BAR_COUNT) {
+      previousDataRef.current = new Array(BAR_COUNT).fill(0);
     }
 
-    // Linear Interpolation for smoothness
+    // Linear Interpolation
     const lerp = (start: number, end: number, factor: number) => {
       return start + (end - start) * factor;
     };
@@ -61,80 +65,125 @@ const AudioVisualizer = () => {
         if (dataArray.some(v => v > 0)) hasData = true;
       }
 
-      // SIMULATION FALLBACK
-      if (!hasData) {
+      // --- FREQUENCY MAPPING LOGIC ---
+      // We want 40 bars.
+      // Bass (20-150Hz) -> Bins 1-7 (approx)
+      // Low Mids (150-600Hz) -> Bins 8-28
+      // Mids (600-2kHz) -> Bins 29-93
+      // Highs (2k-20kHz) -> Bins 94+
+
+      // We will distribute these logarithmically or manually to the 40 bars.
+      // Center bars = Bass. Outer bars = Highs.
+
+      const targetValues = new Array(BAR_COUNT).fill(0);
+
+      if (hasData) {
+        // Map frequency bins to bars.
+        // We'll use a logarithmic scale to give more width to low frequencies.
+
+        for (let i = 0; i < BAR_COUNT; i++) {
+          // Logarithmic mapping:
+          // We want to cover bins 0 to ~600 (up to ~12kHz)
+          // Simple approach: Group bins.
+
+          let startIndex, endIndex;
+
+          // Custom mapping for 40 bars to emphasize bass
+          if (i < 4) { // Deep Bass (20-60Hz)
+            startIndex = 1 + i;
+            endIndex = startIndex + 1;
+          } else if (i < 12) { // Kick/Bass (60-250Hz)
+            startIndex = 5 + (i - 4) * 2;
+            endIndex = startIndex + 2;
+          } else if (i < 24) { // Mids (250-2kHz)
+            startIndex = 21 + (i - 12) * 8;
+            endIndex = startIndex + 8;
+          } else { // Highs (2k+)
+            startIndex = 117 + (i - 24) * 25;
+            endIndex = startIndex + 25;
+          }
+
+          // Average amplitude in this range
+          let sum = 0;
+          let count = 0;
+          for (let j = startIndex; j < endIndex && j < bufferLength; j++) {
+            sum += dataArray[j];
+            count++;
+          }
+          const avg = count > 0 ? sum / count : 0;
+
+          // Boost bass frequencies visually
+          let boost = 1;
+          if (i < 12) boost = 1.2; // Bass boost
+          if (i > 30) boost = 1.5; // Treble boost (usually quieter)
+
+          targetValues[i] = Math.min(255, avg * boost);
+        }
+
+      } else {
+        // SIMULATION
         if (isPlaying) {
-          simOffset += 0.15; // Faster beat
-          for (let i = 0; i < 40; i++) {
-            // Complex wave simulation
-            const val = Math.sin(i * 0.2 + simOffset) * 40 +
-              Math.cos(i * 0.3 - simOffset * 1.5) * 20 + 80;
-            // Fill dataArray for the loop below to consume
-            // We map our 40 bars to the first 40 bins of dataArray for simplicity here
-            dataArray[i] = val;
+          simOffset += 0.2;
+          for (let i = 0; i < BAR_COUNT; i++) {
+            // Simulate a "kick" every ~60 frames
+            const kick = (Math.sin(simOffset * 0.5) > 0.9) && (i < 10) ? 100 : 0;
+            const wave = Math.sin(i * 0.3 + simOffset) * 30 + 50;
+            targetValues[i] = wave + kick;
           }
         } else {
-          // Idle gentle wave
           simOffset += 0.05;
-          for (let i = 0; i < 40; i++) {
-            dataArray[i] = Math.sin(i * 0.1 + simOffset) * 10 + 20;
+          for (let i = 0; i < BAR_COUNT; i++) {
+            targetValues[i] = Math.sin(i * 0.1 + simOffset) * 10 + 10;
           }
         }
       }
 
-      // RENDER LOOP
-      const barCount = 40;
-      const barWidth = (width / barCount) * 0.6; // Thinner, more elegant bars
-      const gap = (width - (barCount * barWidth)) / (barCount + 1);
+      // --- RENDERING ---
+      const barWidth = (width / BAR_COUNT) * 0.6;
+      const gap = (width - (BAR_COUNT * barWidth)) / (BAR_COUNT + 1);
 
-      // Create Premium Gradient
+      // Gradient
       const gradient = ctx.createLinearGradient(0, height, 0, 0);
-      gradient.addColorStop(0, '#0ea5e9'); // Sky 500 (Bottom)
-      gradient.addColorStop(0.5, '#8b5cf6'); // Violet 500
-      gradient.addColorStop(1, '#d946ef'); // Fuchsia 500 (Top)
+      gradient.addColorStop(0, '#0ea5e9'); // Sky
+      gradient.addColorStop(0.5, '#8b5cf6'); // Violet
+      gradient.addColorStop(1, '#d946ef'); // Fuchsia
 
       ctx.fillStyle = gradient;
+      ctx.shadowBlur = 15;
+      ctx.shadowColor = "rgba(139, 92, 246, 0.5)";
 
-      // Add Glow
-      ctx.shadowBlur = 10;
-      ctx.shadowColor = "rgba(139, 92, 246, 0.4)";
+      for (let i = 0; i < BAR_COUNT; i++) {
+        // SMOOTHING
+        // Attack is fast (0.3), Decay is slow (0.1)
+        const current = previousDataRef.current[i];
+        const target = targetValues[i];
+        const factor = target > current ? 0.4 : 0.15; // Snap up, float down
 
-      // Step size to distribute 128 bins across 40 bars
-      // We focus on the lower half (bass/mids) which is usually index 0-60
-      const step = Math.floor(60 / barCount);
-
-      for (let i = 0; i < barCount; i++) {
-        // Get target value
-        let value = 0;
-        if (hasData) {
-          // Average a few bins for stability
-          let sum = 0;
-          for (let j = 0; j < step; j++) {
-            sum += dataArray[(i * step) + j] || 0;
-          }
-          value = sum / step;
-        } else {
-          // Use simulated data
-          value = dataArray[i];
-        }
-
-        // Apply Smoothing (Lerp)
-        // factor 0.2 = responsive but smooth. 0.1 = very smooth/slow.
-        const smoothValue = lerp(previousDataRef.current[i], value, 0.2);
+        const smoothValue = lerp(current, target, factor);
         previousDataRef.current[i] = smoothValue;
 
-        // Calculate Height
-        // Scale 0-255 to 0-height
         const barHeight = (smoothValue / 255) * height;
 
-        // Draw Rounded Bar
-        const x = gap + i * (barWidth + gap);
-        const y = height - barHeight;
+        // Draw Mirrored from Center? Or Standard?
+        // Let's do Standard for accurate EQ visualization, 
+        // OR Mirrored for aesthetics. User asked for "accurate beat".
+        // Standard EQ (Low -> High) is often clearer for "beat accuracy".
+        // But centered looks cooler. Let's do Mirrored but with Bass in Center.
 
-        // Draw rect
-        ctx.beginPath();
-        ctx.roundRect(x, y, barWidth, barHeight, 4); // 4px border radius
-        ctx.fill();
+        // To do Bass in Center:
+        // We need to map our 0-40 array (Low->High) to Center->Out.
+        // Array index 0 (Bass) goes to Center. Array index 39 (High) goes to Edges.
+
+        // Actually, the previous code drew index 0 at the center and expanded out.
+        // That means Center = Bass, Edges = Treble. This is perfect.
+
+        const centerX = width / 2;
+        const xOffset = (barWidth + 1) * i;
+
+        // Right side
+        ctx.fillRect(centerX + xOffset, (height - barHeight) / 2, barWidth, barHeight);
+        // Left side
+        ctx.fillRect(centerX - xOffset - barWidth, (height - barHeight) / 2, barWidth, barHeight);
       }
     };
 
@@ -145,7 +194,7 @@ const AudioVisualizer = () => {
     };
   }, [analyser, isPlaying]);
 
-  return <canvas ref={canvasRef} width={400} height={100} className="w-full h-full" />;
+  return <canvas ref={canvasRef} width={400} height={100} className="w-full h-full opacity-90" />;
 };
 
 export default function Home() {

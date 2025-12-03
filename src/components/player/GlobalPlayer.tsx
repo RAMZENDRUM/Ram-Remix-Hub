@@ -378,16 +378,16 @@ export default function GlobalPlayer() {
 
                                 <StarButton
                                     onClick={togglePlay}
-                                    className="h-11 w-11 rounded-full p-0 bg-gradient-to-b from-slate-200/90 via-slate-500/95 to-slate-900 text-slate-900 dark:text-slate-50 shadow-[0_0_14px_rgba(148,163,184,0.55)]"
-                                    backgroundColor="#020617"
-                                    lightColor="#E5E7EB"
-                                    borderWidth={1.2}
+                                    className="h-11 w-11 rounded-full p-0 bg-gradient-to-b from-neutral-800 to-neutral-950 border border-neutral-700 text-white shadow-[0_0_15px_rgba(255,255,255,0.1)]"
+                                    backgroundColor="#000000"
+                                    lightColor="#FFFFFF"
+                                    borderWidth={1}
                                     aria-label={isPlaying ? "Pause" : "Play"}
                                 >
                                     {isPlaying ? (
-                                        <Pause className="h-4 w-4" />
+                                        <Pause className="h-4 w-4 fill-current" />
                                     ) : (
-                                        <Play className="h-4 w-4" />
+                                        <Play className="h-4 w-4 ml-1 fill-current" />
                                     )}
                                 </StarButton>
 

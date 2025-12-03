@@ -171,7 +171,7 @@ export default function RemixDetail({ params }: { params: Promise<{ id: string }
                             lightColor="#F9FAFB"
                             borderWidth={1}
                         >
-                            <Play className="h-4 w-4 mr-2" />
+                            <Play className="h-4 w-4 mr-2 fill-current" />
                             <span>{remixDetail.play}</span>
                         </StarButton>
                         <FavoriteButton trackId={track.id} initialIsFavorite={isLiked} />

@@ -10,8 +10,8 @@ import {
 import { usePlayer } from "@/context/PlayerContext";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/context/ToastContext";
+import { PlayButton } from "@/components/ui/PlayButton";
 import { formatTime } from "@/lib/formatTime";
-import { StarButton } from "@/components/ui/star-button";
 import { TrackInfoOverlay } from "@/components/track-info-overlay";
 
 type IconButtonWithTooltipProps = {
@@ -66,21 +66,6 @@ function CustomSlider({ min, max, value, onChange, className }: CustomSliderProp
     return (
         <div className={cn("group relative flex h-4 items-center touch-none select-none", className)}>
             {/* Track Background */}
-            <div className="relative h-1.5 w-full rounded-full bg-neutral-800 overflow-hidden">
-                {/* Fill */}
-                <div
-                    className="absolute h-full bg-gradient-to-r from-purple-600 to-indigo-500"
-                    style={{ width: `${percentage}%` }}
-                />
-            </div>
-
-            {/* Thumb - positioned absolutely based on percentage */}
-            <div
-                className="absolute h-3.5 w-3.5 rounded-full bg-white shadow-[0_0_10px_rgba(168,85,247,0.5)] ring-2 ring-purple-500 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-                style={{ left: `${percentage}%`, transform: `translateX(-50%)` }}
-            />
-
-            {/* Invisible Input for interaction */}
             <input
                 type="range"
                 min={min}
@@ -88,7 +73,17 @@ function CustomSlider({ min, max, value, onChange, className }: CustomSliderProp
                 step={0.01}
                 value={value}
                 onChange={(e) => onChange(Number(e.target.value))}
-                className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+                className="w-full accent-white cursor-pointer transition-all duration-200 ease-out"
+                style={{
+                    WebkitAppearance: "none",
+                    background: `linear-gradient(to right, rgba(255,255,255,0.9) ${percentage}%, rgba(255,255,255,0.1) ${percentage}%)`,
+                    height: "4px", // Default height
+                    borderRadius: "10px",
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.height = "8px"}
+                onMouseLeave={(e) => e.currentTarget.style.height = "4px"}
+                onTouchStart={(e) => e.currentTarget.style.height = "8px"}
+                onTouchEnd={(e) => e.currentTarget.style.height = "4px"}
             />
         </div>
     );
@@ -116,7 +111,7 @@ export default function GlobalPlayer() {
         likedIds,
         toggleLike
     } = usePlayer();
-    const { pushToast } = useToast();
+    const { showToast } = useToast();
 
     // const audioRef = useRef<HTMLAudioElement>(null); // Removed local ref
     const audioContextRef = useRef<AudioContext | null>(null);
@@ -257,7 +252,7 @@ export default function GlobalPlayer() {
         if (currentTrack) {
             toggleLike(currentTrack.id);
             // Optional: Toast is handled by UI feedback usually, but we can keep it if desired
-            // pushToast("success", likedIds.has(currentTrack.id) ? "Removed from Liked Songs" : "Added to Liked Songs");
+            // showToast({ variant: "success", message: likedIds.has(currentTrack.id) ? "Removed from Liked Songs" : "Added to Liked Songs" });
         }
     };
 
@@ -269,17 +264,17 @@ export default function GlobalPlayer() {
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
-        pushToast("success", "Download started");
+        showToast({ variant: "success", message: "Download started" });
     };
 
     const handleShare = () => {
         const url = window.location.href;
         navigator.clipboard.writeText(url);
-        pushToast("success", "Link copied to clipboard");
+        showToast({ variant: "success", message: "Link copied to clipboard" });
     };
 
     const handleAddToPlaylist = () => {
-        pushToast("success", "Added to Playlist");
+        showToast({ variant: "success", message: "Added to Playlist" });
     };
 
 
@@ -299,8 +294,8 @@ export default function GlobalPlayer() {
     return (
         <>
             <footer className={cn(
-                "fixed bottom-0 inset-x-0 z-30 border-t border-neutral-800 bg-gradient-to-t from-black via-black/95 to-black/80 backdrop-blur-2xl transition-all duration-300",
-                miniMode ? "py-1" : ""
+                "fixed bottom-4 left-1/2 -translate-x-1/2 w-[95%] md:w-[90%] max-w-[900px] bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-4 flex items-center justify-between shadow-[0_0_25px_rgba(0,0,0,0.4)] z-50 transition-all duration-300",
+                miniMode ? "py-2" : ""
             )}>
                 <audio
                     ref={audioRef}
@@ -308,171 +303,145 @@ export default function GlobalPlayer() {
                     crossOrigin="anonymous"
                     onLoadedMetadata={handleLoadedMetadata}
                     onTimeUpdate={handleTimeUpdate}
-                // onEnded removed, handled in context
                 />
 
-                <div className="mx-auto flex max-w-6xl items-center gap-4 px-4 py-2 md:py-3">
-                    {/* Left: Track Info */}
-                    <div className="flex items-center gap-3 w-[30%] min-w-0">
-                        <div className={cn(
-                            "relative overflow-hidden rounded-xl bg-neutral-800/80 flex-shrink-0 border border-neutral-700/50 transition-all duration-300",
-                            miniMode ? "h-8 w-8" : "h-12 w-12"
-                        )}>
-                            {currentTrack.coverImageUrl ? (
-                                <Image
-                                    src={currentTrack.coverImageUrl}
-                                    alt={currentTrack.title}
-                                    fill
-                                    className="object-cover"
-                                />
-                            ) : (
-                                <div className="flex h-full w-full items-center justify-center text-[10px] text-neutral-400">
-                                    No Art
-                                </div>
-                            )}
-                        </div>
-                        <div className="flex flex-col min-w-0">
-                            <span className="truncate text-sm font-semibold text-white hover:underline cursor-pointer">
-                                {currentTrack.title}
-                            </span>
-                            {!miniMode && (
-                                <div className="flex items-center gap-2 text-[11px] text-neutral-400">
-                                    <span className="truncate max-w-[100px] hover:text-white cursor-pointer transition-colors">
-                                        {currentTrack.artist || "Unknown Artist"}
-                                    </span>
-                                    {currentTrack.genre && (
-                                        <span className="hidden md:inline-flex rounded-full border border-purple-500/30 bg-purple-500/10 px-1.5 py-0.5 text-[9px] uppercase tracking-wide text-purple-300">
-                                            {currentTrack.genre}
-                                        </span>
-                                    )}
-                                </div>
-                            )}
-                        </div>
-                    </div>
-
-                    {/* Center: Controls + Seek */}
-                    <div className="flex flex-col flex-1 items-center gap-1 max-w-[40%]">
-                        {!miniMode && (
-                            <div className="flex items-center gap-4">
-                                <button
-                                    onClick={toggleShuffle}
-                                    className={`p-1.5 rounded-full transition-colors ${isShuffle ? 'text-purple-400 bg-purple-500/10' : 'text-neutral-400 hover:text-white hover:bg-neutral-800'}`}
-                                >
-                                    <Shuffle size={16} />
-                                </button>
-
-                                <button
-                                    onClick={prevTrack}
-                                    className="text-neutral-300 hover:text-white transition-colors active:scale-95"
-                                >
-                                    <SkipBack size={20} fill="currentColor" />
-                                </button>
-
-                                <StarButton
-                                    onClick={togglePlay}
-                                    className="h-11 w-11 rounded-full p-0 bg-gradient-to-b from-neutral-800 to-neutral-950 border border-neutral-700 text-white shadow-[0_0_15px_rgba(255,255,255,0.1)]"
-                                    backgroundColor="#000000"
-                                    lightColor="#FFFFFF"
-                                    borderWidth={1}
-                                    aria-label={isPlaying ? "Pause" : "Play"}
-                                >
-                                    {isPlaying ? (
-                                        <Pause className="h-4 w-4 fill-current" />
-                                    ) : (
-                                        <Play className="h-4 w-4 ml-1 fill-current" />
-                                    )}
-                                </StarButton>
-
-                                <button
-                                    onClick={nextTrack}
-                                    className="text-neutral-300 hover:text-white transition-colors active:scale-95"
-                                >
-                                    <SkipForward size={20} fill="currentColor" />
-                                </button>
-
-                                <button
-                                    onClick={toggleLoopMode}
-                                    className={`p-1.5 rounded-full transition-colors relative ${loopMode !== 'off' ? 'text-purple-400 bg-purple-500/10' : 'text-neutral-400 hover:text-white hover:bg-neutral-800'}`}
-                                >
-                                    <Repeat size={16} />
-                                    {loopMode === 'track' && <span className="absolute text-[8px] font-bold top-1 right-1">1</span>}
-                                </button>
+                {/* Left: Track Info */}
+                <div className="flex items-center gap-4 w-[30%] min-w-0">
+                    <div className={cn(
+                        "relative overflow-hidden rounded-xl bg-neutral-800/80 flex-shrink-0 border border-white/10 transition-all duration-300",
+                        miniMode ? "h-10 w-10" : "h-14 w-14"
+                    )}>
+                        {currentTrack.coverImageUrl ? (
+                            <Image
+                                src={currentTrack.coverImageUrl}
+                                alt={currentTrack.title}
+                                fill
+                                className="object-cover"
+                            />
+                        ) : (
+                            <div className="flex h-full w-full items-center justify-center text-[10px] text-neutral-400">
+                                No Art
                             </div>
                         )}
-
-                        <div className="flex w-full items-center gap-2 text-[10px] font-medium text-neutral-500">
-                            <span className="w-8 text-right tabular-nums">{formatTime(currentTime)}</span>
-                            <CustomSlider
-                                min={0}
-                                max={duration || 0}
-                                value={currentTime}
-                                onChange={handleSeek}
-                                className="flex-1"
-                            />
-                            <span className="w-8 tabular-nums">{formatTime(duration)}</span>
-                        </div>
                     </div>
-
-                    {/* Right: Volume & Extras */}
-                    <div className="flex items-center gap-3 w-[30%] justify-end">
-                        <div className="flex items-center gap-2 group mr-2">
-                            <button onClick={toggleMute} className="text-neutral-400 hover:text-white transition-colors">
-                                {isMuted || volume === 0 ? <VolumeX size={18} /> : volume < 0.5 ? <Volume1 size={18} /> : <Volume2 size={18} />}
-                            </button>
-                            <CustomSlider
-                                min={0}
-                                max={100}
-                                value={isMuted ? 0 : volume * 100}
-                                onChange={handleVolumeChange}
-                                className="w-24"
-                            />
-                        </div>
-
+                    <div className="flex flex-col min-w-0">
+                        <span className="truncate text-sm font-medium text-white hover:underline cursor-pointer">
+                            {currentTrack.title}
+                        </span>
                         {!miniMode && (
-                            <div className="hidden md:flex items-center gap-1">
-                                <IconButtonWithTooltip
-                                    label="Queue"
-                                    onClick={() => setQueueOpen(prev => !prev)}
-                                    active={queueOpen}
-                                >
-                                    <ListMusic size={16} />
-                                </IconButtonWithTooltip>
-
-                                <IconButtonWithTooltip
-                                    label="Track info"
-                                    onClick={() => setInfoOpen(prev => !prev)}
-                                    active={infoOpen}
-                                >
-                                    <Info size={16} />
-                                </IconButtonWithTooltip>
+                            <div className="flex items-center gap-2 text-xs text-white/50">
+                                <span className="truncate max-w-[120px]">
+                                    {currentTrack.artist || "Unknown Artist"}
+                                </span>
                             </div>
                         )}
-
-                        <IconButtonWithTooltip
-                            label={miniMode ? "Expand player" : "Mini player"}
-                            onClick={() => setMiniMode(prev => !prev)}
-                            active={miniMode}
-                        >
-                            {miniMode ? <Maximize2 size={16} /> : <Minimize2 size={16} />}
-                        </IconButtonWithTooltip>
                     </div>
                 </div>
 
-                {/* Queue Panel */}
-                {queueOpen && !miniMode && (
-                    <div className="fixed bottom-20 right-4 z-40 w-64 rounded-2xl border border-neutral-700/80 bg-neutral-950/95 backdrop-blur-xl shadow-2xl shadow-black/60 p-3 space-y-2 animate-in slide-in-from-bottom-2 fade-in duration-200">
-                        <h3 className="text-xs font-semibold text-neutral-200 mb-1 px-1">
-                            Up Next
-                        </h3>
-                        <div className="max-h-64 space-y-1 overflow-y-auto">
-                            {/* Placeholder for queue items */}
-                            <div className="px-2 py-4 text-center text-xs text-neutral-500 italic">
-                                Queue is empty
-                            </div>
+                {/* Center: Controls + Seek */}
+                <div className="flex flex-col flex-1 items-center gap-2 max-w-[60%]">
+                    {!miniMode && (
+                        <div className="flex items-center gap-6">
+                            <button
+                                onClick={toggleShuffle}
+                                className={`transition-colors ${isShuffle ? 'text-purple-400' : 'text-white/40 hover:text-white'}`}
+                            >
+                                <Shuffle size={18} />
+                            </button>
+
+                            <button
+                                onClick={prevTrack}
+                                className="text-white/70 hover:text-white transition-colors active:scale-95"
+                            >
+                                <SkipBack size={22} fill="currentColor" />
+                            </button>
+
+                            <PlayButton
+                                variant="circle"
+                                isPlaying={isPlaying}
+                                onClick={togglePlay}
+                                className="w-12 h-12 rounded-full border border-white/40 bg-white/10 hover:bg-white/20 transition flex items-center justify-center backdrop-blur-md shadow-none"
+                            />
+
+                            <button
+                                onClick={nextTrack}
+                                className="text-white/70 hover:text-white transition-colors active:scale-95"
+                            >
+                                <SkipForward size={22} fill="currentColor" />
+                            </button>
+
+                            <button
+                                onClick={toggleLoopMode}
+                                className={`transition-colors relative ${loopMode !== 'off' ? 'text-purple-400' : 'text-white/40 hover:text-white'}`}
+                            >
+                                <Repeat size={18} />
+                                {loopMode === 'track' && <span className="absolute text-[8px] font-bold top-0 right-0">1</span>}
+                            </button>
+                        </div>
+                    )}
+
+                    <div className="flex w-full items-center gap-3 text-[10px] font-medium text-white/40">
+                        <span className="w-8 text-right tabular-nums">{formatTime(currentTime)}</span>
+                        <CustomSlider
+                            min={0}
+                            max={duration || 0}
+                            value={currentTime}
+                            onChange={handleSeek}
+                            className="flex-1"
+                        />
+                        <span className="w-8 tabular-nums">{formatTime(duration)}</span>
+                    </div>
+                </div>
+
+                {/* Right: Volume & Extras */}
+                <div className="flex items-center gap-4 w-[30%] justify-end">
+                    <div className="flex items-center gap-2 group">
+                        <button onClick={toggleMute} className="text-white/40 hover:text-white transition-colors">
+                            {isMuted || volume === 0 ? <VolumeX size={18} /> : volume < 0.5 ? <Volume1 size={18} /> : <Volume2 size={18} />}
+                        </button>
+                        <CustomSlider
+                            min={0}
+                            max={100}
+                            value={isMuted ? 0 : volume * 100}
+                            onChange={handleVolumeChange}
+                            className="w-20"
+                        />
+                    </div>
+
+                    {!miniMode && (
+                        <div className="hidden md:flex items-center gap-2">
+                            <button
+                                onClick={() => setQueueOpen(prev => !prev)}
+                                className={`p-2 rounded-full transition-colors ${queueOpen ? 'bg-white/10 text-white' : 'text-white/40 hover:text-white hover:bg-white/5'}`}
+                            >
+                                <ListMusic size={18} />
+                            </button>
+                        </div>
+                    )}
+
+                    <button
+                        onClick={() => setMiniMode(prev => !prev)}
+                        className="text-white/40 hover:text-white transition-colors p-2"
+                    >
+                        {miniMode ? <Maximize2 size={18} /> : <Minimize2 size={18} />}
+                    </button>
+                </div>
+            </footer>
+
+            {/* Queue Panel */}
+            {queueOpen && !miniMode && (
+                <div className="fixed bottom-20 right-4 z-40 w-64 rounded-2xl border border-neutral-700/80 bg-neutral-950/95 backdrop-blur-xl shadow-2xl shadow-black/60 p-3 space-y-2 animate-in slide-in-from-bottom-2 fade-in duration-200">
+                    <h3 className="text-xs font-semibold text-neutral-200 mb-1 px-1">
+                        Up Next
+                    </h3>
+                    <div className="max-h-64 space-y-1 overflow-y-auto">
+                        {/* Placeholder for queue items */}
+                        <div className="px-2 py-4 text-center text-xs text-neutral-500 italic">
+                            Queue is empty
                         </div>
                     </div>
-                )}
-            </footer>
+                </div>
+            )}
 
             {/* Track Info Overlay */}
             <TrackInfoOverlay

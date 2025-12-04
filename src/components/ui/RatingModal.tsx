@@ -16,13 +16,13 @@ export function RatingModal({ isOpen, onClose, trackId, onRatingSubmit }: Rating
     const [hoverRating, setHoverRating] = useState(0);
     const [feedback, setFeedback] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const { pushToast } = useToast();
+    const { showToast } = useToast();
 
     if (!isOpen) return null;
 
     const handleSubmit = async () => {
         if (rating === 0) {
-            pushToast("error", "Please select a star rating");
+            showToast({ variant: "error", message: "Please select a star rating" });
             return;
         }
 
@@ -35,14 +35,14 @@ export function RatingModal({ isOpen, onClose, trackId, onRatingSubmit }: Rating
             });
 
             if (res.ok) {
-                pushToast("success", "Rating submitted successfully!");
+                showToast({ variant: "success", message: "Rating submitted successfully!" });
                 onRatingSubmit();
                 onClose();
             } else {
-                pushToast("error", "Failed to submit rating");
+                showToast({ variant: "error", message: "Failed to submit rating" });
             }
         } catch (error) {
-            pushToast("error", "An error occurred");
+            showToast({ variant: "error", message: "An error occurred" });
         } finally {
             setIsSubmitting(false);
         }

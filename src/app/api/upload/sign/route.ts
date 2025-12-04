@@ -6,27 +6,34 @@ import cloudinary from "@/lib/cloudinary";
 export async function POST(req: NextRequest) {
     try {
         const session = await getServerSession(authOptions);
-        if (!session || session.user?.email !== 'ramzendrum@gmail.com') {
+        if (!session) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
         const body = await req.json();
-        const { folder, preset } = body;
+        console.log("[UPLOAD_SIGN] Request body:", body);
+        const { folder } = body;
+
+        // Security: Only allow uploads to specific folders for users
+        if (!folder || !folder.startsWith('ram-remix-hub/avatars')) {
+            return NextResponse.json({ error: "Invalid folder" }, { status: 400 });
+        }
 
         const timestamp = Math.round((new Date).getTime() / 1000);
 
         const signature = cloudinary.utils.api_sign_request({
             timestamp: timestamp,
-            // folder: folder, // Preset handles folder
-            upload_preset: preset,
+            folder: folder,
         }, cloudinary.config().api_secret!);
 
-        return NextResponse.json({
+        const response = {
             timestamp,
             signature,
             cloudName: cloudinary.config().cloud_name,
             apiKey: cloudinary.config().api_key
-        });
+        };
+        console.log("[UPLOAD_SIGN] Response:", response);
+        return NextResponse.json(response);
     } catch (error) {
         console.error("Signature error:", error);
         return NextResponse.json({ error: "Internal server error" }, { status: 500 });

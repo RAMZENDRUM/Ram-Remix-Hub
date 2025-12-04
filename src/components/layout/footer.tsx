@@ -30,7 +30,7 @@ const Spotify = ({ className }: { className?: string }) => (
 const currentYear = new Date().getFullYear();
 
 export function SiteFooter() {
-    const { pushToast } = useToast();
+    const { showToast } = useToast();
 
     return (
         <footer className="w-full bg-black py-12 md:py-16 mt-auto relative">
@@ -52,7 +52,7 @@ export function SiteFooter() {
                                 <button
                                     onClick={() => {
                                         navigator.clipboard.writeText("ramzendrum@gmail.com");
-                                        pushToast("success", "Email copied to clipboard");
+                                        showToast({ variant: "success", message: "Email copied to clipboard" });
                                     }}
                                     className="text-neutral-200 hover:text-purple-400 transition-colors flex items-center gap-2 group"
                                     title="Click to copy"

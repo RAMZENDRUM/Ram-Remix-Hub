@@ -1,8 +1,11 @@
 'use client';
 
 import React, { useState } from 'react';
-import { X, Check, ChevronDown, Plus, Minus } from 'lucide-react';
+import { X, Check, ChevronDown, Plus, Minus, ChevronUp, Camera } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { useToast } from "@/context/ToastContext";
+import { MetallicAvatar } from "@/components/ui/MetallicAvatar";
+import { CountrySelect } from '@/components/ui/CountrySelect';
 
 interface EditProfileModalProps {
     isOpen: boolean;
@@ -10,15 +13,7 @@ interface EditProfileModalProps {
     user: any;
 }
 
-const COUNTRIES = [
-    "India",
-    "United Kingdom",
-    "United States",
-    "Germany",
-    "Japan",
-    "France",
-    "Other"
-];
+// Removed local COUNTRIES array in favor of CountrySelect component
 
 const GENRES = [
     "Pop", "Hip-Hop", "R&B", "EDM", "Trap", "Drill",
@@ -27,13 +22,26 @@ const GENRES = [
 
 export function EditProfileModal({ isOpen, onClose, user }: EditProfileModalProps) {
     const router = useRouter();
+    const { showToast } = useToast();
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState("");
 
     const [displayName, setDisplayName] = useState(user.name || "");
     const [age, setAge] = useState<number | "">(user.age || "");
-    const [country, setCountry] = useState(user.country || COUNTRIES[0]);
-    const [favoriteGenres, setFavoriteGenres] = useState<string[]>(user.favoriteGenres || []);
+    const [country, setCountry] = useState<string | null>(user.country || null);
+    const [favoriteGenres, setFavoriteGenres] = useState<string[]>(() => {
+        if (Array.isArray(user.favoriteGenres)) return user.favoriteGenres;
+        if (typeof user.favoriteGenres === 'string') {
+            try {
+                return JSON.parse(user.favoriteGenres);
+            } catch {
+                return [];
+            }
+        }
+        return [];
+    });
+    const [profileImageUrl, setProfileImageUrl] = useState<string | null>(user.image || null);
+    const [isUploading, setIsUploading] = useState(false);
 
     if (!isOpen) return null;
 
@@ -42,6 +50,45 @@ export function EditProfileModal({ isOpen, onClose, user }: EditProfileModalProp
             setFavoriteGenres(favoriteGenres.filter(g => g !== genre));
         } else {
             setFavoriteGenres([...favoriteGenres, genre]);
+        }
+    };
+
+    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        setIsUploading(true);
+        setError("");
+
+        try {
+            // 1. Upload to Cloudinary using unsigned preset
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('upload_preset', 'user_profile_private'); // Unsigned preset
+
+            // Note: NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME must be set in .env
+            const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
+            if (!cloudName) throw new Error("Missing Cloudinary Cloud Name");
+
+            const uploadRes = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
+                method: 'POST',
+                body: formData,
+            });
+
+            if (!uploadRes.ok) {
+                const errorText = await uploadRes.text();
+                console.error("Cloudinary Upload Error:", errorText);
+                throw new Error(`Cloudinary upload failed: ${uploadRes.statusText}`);
+            }
+            const data = await uploadRes.json();
+
+            setProfileImageUrl(data.secure_url);
+            showToast({ variant: "success", message: "Image uploaded successfully" });
+        } catch (err) {
+            console.error(err);
+            showToast({ variant: "error", message: "Could not upload image. Please try again." });
+        } finally {
+            setIsUploading(false);
         }
     };
 
@@ -55,8 +102,8 @@ export function EditProfileModal({ isOpen, onClose, user }: EditProfileModalProp
             setIsLoading(false);
             return;
         }
-        if (typeof age === 'number' && (age < 13 || age > 120)) {
-            setError("Age must be between 13 and 120");
+        if (typeof age === 'number' && (age < 3 || age > 120)) {
+            setError("Age must be between 3 and 120");
             setIsLoading(false);
             return;
         }
@@ -72,17 +119,20 @@ export function EditProfileModal({ isOpen, onClose, user }: EditProfileModalProp
                     age: age === "" ? null : age,
                     country,
                     favoriteGenres,
+                    profileImageUrl,
                 }),
             });
 
             if (!res.ok) {
-                throw new Error("Failed to update profile");
+                const errorText = await res.text();
+                console.error("Profile Update Error:", errorText);
+                throw new Error(`Failed to update profile: ${errorText}`);
             }
 
             // Success
             router.refresh(); // Refresh server components to show new data
             onClose();
-            // Ideally show a toast here, but for now we just close
+            showToast({ variant: "success", message: "Profile updated successfully." });
         } catch (err) {
             console.error(err);
             setError("Could not save changes. Please try again.");
@@ -103,7 +153,20 @@ export function EditProfileModal({ isOpen, onClose, user }: EditProfileModalProp
                     <X size={20} />
                 </button>
 
-                <div className="mb-6 text-center">
+                <div className="mb-6 flex flex-col items-center text-center">
+                    <div className="mb-4 relative group">
+                        <MetallicAvatar name={displayName} image={profileImageUrl} size="lg" />
+                        <label className="absolute bottom-0 right-0 p-2 bg-neutral-900 rounded-full border border-white/10 text-white/70 hover:text-white hover:bg-neutral-800 cursor-pointer transition-colors shadow-lg">
+                            <Camera size={14} />
+                            <input
+                                type="file"
+                                accept="image/*"
+                                className="hidden"
+                                onChange={handleImageUpload}
+                                disabled={isUploading}
+                            />
+                        </label>
+                    </div>
                     <h2 className="text-2xl font-bold text-white mb-1">Edit Profile</h2>
                     <p className="text-sm text-white/60">Update how your profile appears in Ram Remix Hub.</p>
                 </div>
@@ -124,30 +187,35 @@ export function EditProfileModal({ isOpen, onClose, user }: EditProfileModalProp
                     {/* Age & Country Row */}
                     <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
-                            <label className="text-xs font-medium text-white/70 uppercase tracking-wider">Age <span className="text-white/40">(13+)</span></label>
-                            <input
-                                type="number"
-                                min={13}
-                                max={120}
-                                value={age}
-                                onChange={(e) => setAge(e.target.valueAsNumber || "")}
-                                className="w-full bg-white/5 rounded-2xl border border-white/10 px-4 py-3 text-white placeholder:text-white/40 focus:outline-none focus:border-[#C69AFF] transition-colors"
-                            />
+                            <label className="text-xs font-medium text-white/70 uppercase tracking-wider">Age <span className="text-white/40">(3+)</span></label>
+                            <div className="relative flex items-center bg-white/5 rounded-2xl border border-white/10 px-3 py-2 focus-within:border-[#C69AFF] focus-within:shadow-[0_0_18px_rgba(140,92,255,0.6)] transition-all">
+                                <input
+                                    type="number"
+                                    min={3}
+                                    max={120}
+                                    value={age}
+                                    onChange={(e) => setAge(e.target.valueAsNumber || "")}
+                                    className="w-full bg-transparent text-white outline-none appearance-none [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                />
+                                <div className="absolute right-2 inset-y-1 flex flex-col justify-center gap-[2px]">
+                                    <button
+                                        onClick={() => typeof age === 'number' && setAge(Math.min(120, age + 1))}
+                                        className="w-6 h-4 flex items-center justify-center rounded-full bg-transparent text-white/60 hover:text-white hover:bg-white/10 text-xs"
+                                    >
+                                        <ChevronUp size={10} />
+                                    </button>
+                                    <button
+                                        onClick={() => typeof age === 'number' && setAge(Math.max(3, age - 1))}
+                                        className="w-6 h-4 flex items-center justify-center rounded-full bg-transparent text-white/60 hover:text-white hover:bg-white/10 text-xs"
+                                    >
+                                        <ChevronDown size={10} />
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                         <div className="space-y-2">
                             <label className="text-xs font-medium text-white/70 uppercase tracking-wider">Country</label>
-                            <div className="relative">
-                                <select
-                                    value={country}
-                                    onChange={(e) => setCountry(e.target.value)}
-                                    className="w-full bg-white/5 rounded-2xl border border-white/10 px-4 py-3 text-white appearance-none focus:outline-none focus:border-[#C69AFF] transition-colors cursor-pointer"
-                                >
-                                    {COUNTRIES.map(c => (
-                                        <option key={c} value={c} className="bg-neutral-900 text-white">{c}</option>
-                                    ))}
-                                </select>
-                                <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-white/50 pointer-events-none" />
-                            </div>
+                            <CountrySelect value={country} onChange={setCountry} />
                         </div>
                     </div>
 
@@ -162,8 +230,8 @@ export function EditProfileModal({ isOpen, onClose, user }: EditProfileModalProp
                                         key={genre}
                                         onClick={() => toggleGenre(genre)}
                                         className={`px-3 py-1 text-sm rounded-2xl border transition-all duration-200 ${isSelected
-                                                ? 'bg-gradient-to-r from-[#C69AFF] to-[#6F5BFF] text-white font-semibold border-transparent shadow-[0_0_18px_rgba(140,92,255,0.6)]'
-                                                : 'bg-black/40 border-white/10 text-white/70 hover:bg-white/10'
+                                            ? 'bg-gradient-to-r from-[#C69AFF] to-[#6F5BFF] text-white font-semibold border-transparent shadow-[0_0_18px_rgba(140,92,255,0.6)]'
+                                            : 'bg-black/40 border-white/10 text-white/70 hover:bg-white/10'
                                             }`}
                                     >
                                         {genre}

@@ -38,7 +38,7 @@ export default async function RootLayout({
     <html lang="en">
       <body className={`${inter.className} bg-black text-white relative`}>
         <RainBackground
-          intensity={500}
+          intensity={100}
           speed={0.2}
           angle={10}
           color="rgba(174, 194, 224, 0.6)"
@@ -57,11 +57,11 @@ export default async function RootLayout({
             <PlayerProvider>
               <ToastProvider>
                 <LanguageProvider>
-                  {session && <Navbar />}
+                  <Navbar />
                   <main style={{ minHeight: '100vh', paddingTop: '64px', paddingBottom: '100px' }}>
                     {children}
                   </main>
-                  {session && <GlobalPlayer />}
+                  <GlobalPlayer />
                   <SiteFooter />
                 </LanguageProvider>
               </ToastProvider>

@@ -10,6 +10,7 @@ import {
 import { useLanguage } from "@/context/LanguageContext";
 import RemixCard from '@/components/RemixCard';
 import { EditProfileModal } from './EditProfileModal';
+import { MetallicAvatar } from '@/components/ui/MetallicAvatar';
 
 interface ListenerProfileProps {
     user: any;
@@ -68,17 +69,7 @@ export function ListenerProfile({ user }: ListenerProfileProps) {
                 <div className="relative z-10 flex flex-col md:flex-row items-center md:items-start gap-8">
                     {/* Avatar */}
                     <div className="relative">
-                        <div className="w-24 h-24 rounded-full p-1 bg-gradient-to-br from-purple-500 to-blue-500">
-                            <div className="w-full h-full rounded-full bg-black p-1">
-                                <div className="w-full h-full rounded-full overflow-hidden relative bg-neutral-800 flex items-center justify-center">
-                                    {user.image ? (
-                                        <img src={user.image} alt={user.name || 'User'} className="w-full h-full object-cover" />
-                                    ) : (
-                                        <UserIcon size={32} className="text-neutral-400" />
-                                    )}
-                                </div>
-                            </div>
-                        </div>
+                        <MetallicAvatar name={user.name} image={user.image} size="xl" />
                     </div>
 
                     {/* Info */}

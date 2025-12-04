@@ -6,9 +6,11 @@ import { usePathname } from 'next/navigation';
 import { Search, Globe, User, ShieldCheck, Home, Disc, ListMusic } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 import SearchOverlay from './SearchOverlay';
+import SearchComponent from './SearchComponent';
 import { LanguageSwitcher } from "./ui/language-switcher";
 import { useLanguage } from "@/context/LanguageContext";
 import { BrandLogo } from "@/components/BrandLogo";
+import { MetallicAvatar } from "@/components/ui/MetallicAvatar";
 
 const Navbar = () => {
     const pathname = usePathname();
@@ -59,8 +61,14 @@ const Navbar = () => {
 
                         {/* Right Side Actions */}
                         <div className="flex items-center gap-4">
+                            {/* Search Component */}
+                            <div className="hidden md:block">
+                                <SearchComponent />
+                            </div>
+
+                            {/* Mobile Search Trigger */}
                             <button
-                                className="p-2 text-neutral-400 hover:text-white transition-colors"
+                                className="md:hidden p-2 text-neutral-400 hover:text-white transition-colors"
                                 onClick={() => setIsSearchOpen(true)}
                             >
                                 <Search size={20} />
@@ -70,13 +78,7 @@ const Navbar = () => {
 
                             {user ? (
                                 <Link href="/profile" className="flex items-center gap-2">
-                                    <div className="w-8 h-8 rounded-full bg-neutral-800 border border-neutral-700 flex items-center justify-center overflow-hidden">
-                                        {user.image ? (
-                                            <img src={user.image} alt="Profile" className="w-full h-full object-cover" />
-                                        ) : (
-                                            <User size={16} className="text-neutral-400" />
-                                        )}
-                                    </div>
+                                    <MetallicAvatar name={user.name} image={user.image} size="sm" />
                                 </Link>
                             ) : (
                                 <Link href="/auth" className="p-2 text-neutral-400 hover:text-white transition-colors">

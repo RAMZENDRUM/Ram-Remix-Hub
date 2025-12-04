@@ -8,6 +8,7 @@ import { RatingModal } from '@/components/ui/RatingModal';
 import { useToast } from '@/context/ToastContext';
 import { cn } from '@/lib/utils';
 import { useSyncRouteWithPlayer } from '@/hooks/useSyncRouteWithPlayer';
+import { PlayButton } from "@/components/ui/PlayButton";
 
 interface Track {
     id: string;
@@ -33,7 +34,7 @@ interface Review {
 export default function RemixDetail({ params }: { params: Promise<{ id: string }> }) {
     const { id } = use(params);
     const { remixDetail } = uiText;
-    const { playQueue, likedIds, toggleLike } = usePlayer();
+    const { playQueue, likedIds, toggleLike, isPlaying, currentTrack, togglePlay } = usePlayer();
     const [track, setTrack] = useState<Track | null>(null);
     const [relatedTracks, setRelatedTracks] = useState<Track[]>([]);
     const [loading, setLoading] = useState(true);
@@ -96,12 +97,12 @@ export default function RemixDetail({ params }: { params: Promise<{ id: string }
         fetchTrackAndRatings();
     }, [id]);
 
-    const { pushToast } = useToast();
+    const { showToast } = useToast();
 
     const handleShare = () => {
         const url = window.location.href;
         navigator.clipboard.writeText(url);
-        pushToast("success", "Link copied to clipboard");
+        showToast({ variant: "success", message: "Link copied to clipboard" });
     };
 
     const handleLike = async () => {
@@ -124,20 +125,20 @@ export default function RemixDetail({ params }: { params: Promise<{ id: string }
                 if (data.liked !== currentlyLiked) {
                     toggleLike(track.id);
                 }
-                pushToast("success", data.liked ? "Added to Favorites" : "Removed from Favorites");
+                showToast({ variant: "success", message: data.liked ? "Added to Favorites" : "Removed from Favorites" });
             } else {
                 // Revert on failure
                 toggleLike(track.id);
                 if (res.status === 401) {
-                    pushToast("error", "Please login to like tracks");
+                    showToast({ variant: "error", message: "Please login to like tracks" });
                 } else {
-                    pushToast("error", "Failed to update like status");
+                    showToast({ variant: "error", message: "Failed to update like status" });
                 }
             }
         } catch (error) {
             // Revert on error
             toggleLike(track.id);
-            pushToast("error", "An error occurred");
+            showToast({ variant: "error", message: "An error occurred" });
         }
     };
 
@@ -149,18 +150,23 @@ export default function RemixDetail({ params }: { params: Promise<{ id: string }
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
-            pushToast("success", "Download started");
+            showToast({ variant: "success", message: "Download started" });
         }
     };
 
     const handlePlay = () => {
         if (!track) return;
 
-        // Create a queue starting with this track, followed by related tracks
-        const queue = [track, ...relatedTracks];
-
-        playQueue(queue, 0);
+        if (currentTrack?.id === track.id) {
+            togglePlay();
+        } else {
+            // Create a queue starting with this track, followed by related tracks
+            const queue = [track, ...relatedTracks];
+            playQueue(queue, 0);
+        }
     };
+
+    const isCurrentTrackPlaying = currentTrack?.id === track?.id && isPlaying;
 
     if (loading) return <div className="text-center py-20 text-neutral-400">Loading...</div>;
     if (!track) return <div className="text-center py-20 text-neutral-400">Track not found</div>;
@@ -189,21 +195,21 @@ export default function RemixDetail({ params }: { params: Promise<{ id: string }
                             <button
                                 onClick={handleLike}
                                 className={`flex-1 flex items-center justify-center py-3 rounded-full border transition-all duration-300 ${isLiked
-                                        ? "bg-fuchsia-500/20 border-fuchsia-500/50 text-fuchsia-400"
-                                        : "bg-white/5 border-white/10 text-white/70 hover:bg-white/10"
+                                    ? "bg-fuchsia-500/20 border-fuchsia-500/50 text-fuchsia-400"
+                                    : "bg-white/5 border-white/10 text-white/70 hover:bg-white/10"
                                     }`}
                                 aria-label="Toggle favourite"
                             >
                                 <Heart className={`h-5 w-5 ${isLiked ? "fill-current" : ""}`} />
                             </button>
 
-                            <button
+                            <PlayButton
+                                variant="pill"
+                                isPlaying={isCurrentTrackPlaying}
                                 onClick={handlePlay}
-                                className="flex-[2] flex items-center justify-center gap-2 py-3 rounded-full bg-gradient-to-r from-[#C69AFF] to-[#6F5BFF] text-white font-bold shadow-[0_0_20px_rgba(140,92,255,0.4)] hover:shadow-[0_0_30px_rgba(140,92,255,0.6)] hover:brightness-110 transition-all duration-300 transform hover:-translate-y-0.5"
-                            >
-                                <Play className="h-5 w-5 fill-current" />
-                                <span>Play Now</span>
-                            </button>
+                                label={isCurrentTrackPlaying ? "Pause" : "Play Now"}
+                                className="flex-[2]"
+                            />
 
                             <button
                                 onClick={handleDownload}

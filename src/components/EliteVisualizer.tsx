@@ -44,17 +44,7 @@ const EliteVisualizer: React.FC<EliteVisualizerProps> = ({
         const bufferLength = analyser ? analyser.frequencyBinCount : 128;
         const dataArray = new Uint8Array(bufferLength);
 
-        const renderFrame = () => {
-            // 1. Get Data
-            if (analyser && isPlaying) {
-                analyser.getByteFrequencyData(dataArray);
-            } else {
-                // Sim data
-                for (let i = 0; i < bufferLength; i++) {
-                    dataArray[i] = 10; // Low baseline
-                }
-            }
-
+        const draw = () => {
             const width = size;
             const height = size;
             const centerX = width / 2;
@@ -62,8 +52,8 @@ const EliteVisualizer: React.FC<EliteVisualizerProps> = ({
 
             ctx.clearRect(0, 0, width, height);
 
-            const numPoints = 180;                         // smooth circle, no bars
-            const baseRadius = Math.min(width, height) * 0.25; // Adjusted radius to fit container
+            const numPoints = 180;
+            const baseRadius = Math.min(width, height) * 0.25;
 
             // Soft purple inner glow
             ctx.beginPath();
@@ -71,40 +61,18 @@ const EliteVisualizer: React.FC<EliteVisualizerProps> = ({
             ctx.fillStyle = "rgba(168, 85, 255, 0.05)";
             ctx.fill();
 
-            // Draw Cover Art (Circular) - Removed as per request
-            // ctx.save();
-            // ctx.beginPath();
-            // ctx.arc(centerX, centerY, baseRadius, 0, Math.PI * 2);
-            // ctx.closePath();
-            // ctx.clip();
-            // if (imageRef.current && imageRef.current.complete) {
-            //     ctx.drawImage(imageRef.current, centerX - baseRadius, centerY - baseRadius, baseRadius * 2, baseRadius * 2);
-            // } else {
-            //     ctx.fillStyle = "#1a1a1a";
-            //     ctx.fill();
-            // }
-            // ctx.restore();
-
-
             const numRings = 3;
             // Audio reactivity constants (simulated or passed)
             const audioSensitivity = 5;
             const audioReactivity = 1.2;
 
             for (let ring = 0; ring < numRings; ring++) {
-                const ringRadius = baseRadius * (0.9 + ring * 0.15); // Slightly adjusted start radius
+                const ringRadius = baseRadius * (0.9 + ring * 0.15);
                 const opacity = 0.8 - ring * 0.2;
 
                 ctx.beginPath();
 
                 for (let i = 0; i < numPoints; i++) {
-                    // Calculate frequency range for this ring
-                    // We need to map ring index to frequency bands
-                    // Ring 0: Bass/Low Mids
-                    // Ring 1: Mids
-                    // Ring 2: Highs
-
-                    // Simplified mapping for the visualizer context
                     const freqRangeStart = Math.floor(
                         (ring * bufferLength) / (numRings * 2)
                     );
@@ -113,15 +81,10 @@ const EliteVisualizer: React.FC<EliteVisualizerProps> = ({
                     );
 
                     const freqRange = Math.max(1, freqRangeEnd - freqRangeStart);
-                    const segmentSize = Math.max(1, Math.floor(freqRange / (numPoints / 10))); // Sample fewer points for smoothness
 
-                    // Get average value for this segment
                     let sum = 0;
-                    // We map 'i' to the frequency data index
-                    // This is a simplified mapping to distribute points around the circle
                     const dataIndex = freqRangeStart + Math.floor((i / numPoints) * freqRange);
 
-                    // Use a small window around dataIndex for smoothing
                     const windowSize = 4;
                     let count = 0;
                     for (let w = 0; w < windowSize; w++) {
@@ -134,7 +97,7 @@ const EliteVisualizer: React.FC<EliteVisualizerProps> = ({
 
                     const adjustedValue = (value / 255) * (audioSensitivity / 5) * audioReactivity;
 
-                    const dynamicRadius = ringRadius * (1 + adjustedValue * 0.3); // 0.3 scale factor
+                    const dynamicRadius = ringRadius * (1 + adjustedValue * 0.3);
                     const angle = (i / numPoints) * Math.PI * 2;
                     const x = centerX + Math.cos(angle) * dynamicRadius;
                     const y = centerY + Math.sin(angle) * dynamicRadius;
@@ -145,38 +108,25 @@ const EliteVisualizer: React.FC<EliteVisualizerProps> = ({
 
                 ctx.closePath();
 
-                // Purple gradients for each ring
                 let gradient;
                 if (ring === 0) {
                     gradient = ctx.createRadialGradient(
-                        centerX,
-                        centerY,
-                        ringRadius * 0.8,
-                        centerX,
-                        centerY,
-                        ringRadius * 1.2
+                        centerX, centerY, ringRadius * 0.8,
+                        centerX, centerY, ringRadius * 1.2
                     );
-                    gradient.addColorStop(0, `rgba(168, 85, 255, ${opacity})`);      // primary purple
-                    gradient.addColorStop(1, `rgba(109, 40, 217, ${opacity * 0.7})`); // darker purple
+                    gradient.addColorStop(0, `rgba(168, 85, 255, ${opacity})`);
+                    gradient.addColorStop(1, `rgba(109, 40, 217, ${opacity * 0.7})`);
                 } else if (ring === 1) {
                     gradient = ctx.createRadialGradient(
-                        centerX,
-                        centerY,
-                        ringRadius * 0.8,
-                        centerX,
-                        centerY,
-                        ringRadius * 1.2
+                        centerX, centerY, ringRadius * 0.8,
+                        centerX, centerY, ringRadius * 1.2
                     );
                     gradient.addColorStop(0, `rgba(109, 40, 217, ${opacity})`);
-                    gradient.addColorStop(1, `rgba(233, 213, 255, ${opacity * 0.7})`); // light lavender
+                    gradient.addColorStop(1, `rgba(233, 213, 255, ${opacity * 0.7})`);
                 } else {
                     gradient = ctx.createRadialGradient(
-                        centerX,
-                        centerY,
-                        ringRadius * 0.8,
-                        centerX,
-                        centerY,
-                        ringRadius * 1.2
+                        centerX, centerY, ringRadius * 0.8,
+                        centerX, centerY, ringRadius * 1.2
                     );
                     gradient.addColorStop(0, `rgba(233, 213, 255, ${opacity})`);
                     gradient.addColorStop(1, `rgba(168, 85, 255, ${opacity * 0.7})`);
@@ -188,10 +138,21 @@ const EliteVisualizer: React.FC<EliteVisualizerProps> = ({
                 ctx.shadowColor = "rgba(168, 85, 255, 0.7)";
                 ctx.stroke();
             }
-
             ctx.shadowBlur = 0;
+        };
 
-            frameRef.current = requestAnimationFrame(renderFrame);
+        const renderFrame = () => {
+            if (analyser && isPlaying) {
+                analyser.getByteFrequencyData(dataArray);
+                draw();
+                frameRef.current = requestAnimationFrame(renderFrame);
+            } else {
+                // Draw static idle state
+                for (let i = 0; i < bufferLength; i++) {
+                    dataArray[i] = 10; // Low baseline
+                }
+                draw();
+            }
         };
 
         renderFrame();

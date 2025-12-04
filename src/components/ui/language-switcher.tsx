@@ -1,8 +1,9 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Globe, Check } from 'lucide-react';
+import { Globe, Check, ChevronDown } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
+import { cn } from '@/lib/utils';
 
 const languages = [
     { code: 'en', name: 'English (UK)', label: 'EN' },
@@ -32,38 +33,69 @@ export function LanguageSwitcher() {
 
     return (
         <div className="relative" ref={dropdownRef}>
+            {/* Trigger Button - Icon Only, Compact */}
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="flex items-center gap-2 rounded-full bg-black/30 border border-white/10 px-3 py-1.5 text-sm font-medium text-white/90 hover:bg-black/50 hover:shadow-[0_0_15px_rgba(198,154,255,0.3)] hover:border-purple-500/30 transition-all active:scale-95"
+                className={cn(
+                    "group flex items-center justify-center w-10 h-10 rounded-full transition-all duration-300 border",
+                    isOpen
+                        ? "bg-purple-500/20 border-purple-500/50 text-purple-300 shadow-[0_0_20px_rgba(168,85,247,0.6)]"
+                        : "bg-white/5 border-white/10 text-white/70 hover:bg-white/10 hover:border-white/30 hover:text-white hover:shadow-[0_0_15px_rgba(168,85,247,0.4)]"
+                )}
+                aria-label="Change Language"
             >
-                <Globe size={16} className="text-purple-400" />
-                <span className="hidden md:inline">{currentLang.label}</span>
+                <Globe
+                    size={20}
+                    className={cn(
+                        "transition-transform duration-700 ease-in-out",
+                        isOpen ? "rotate-180 text-purple-400 drop-shadow-[0_0_8px_rgba(168,85,247,0.8)]" : "group-hover:rotate-180 group-hover:text-purple-300"
+                    )}
+                />
             </button>
 
+            {/* Dropdown Menu */}
             {isOpen && (
-                <div className="absolute right-0 mt-2 w-56 rounded-xl border border-white/10 bg-black/80 backdrop-blur-xl shadow-[0_0_30px_rgba(140,92,255,0.3)] p-2 z-50 animate-in fade-in zoom-in-95 duration-200 origin-top-right">
-                    <div className="flex flex-col gap-1">
-                        {languages.map((lang) => (
-                            <button
-                                key={lang.code}
-                                onClick={() => {
-                                    setLanguage(lang.code);
-                                    setIsOpen(false);
-                                }}
-                                className={`flex items-center justify-between w-full px-4 py-3 rounded-lg text-left transition-all ${language === lang.code
-                                        ? 'bg-gradient-to-r from-[#C69AFF] to-[#6F5BFF] text-white font-semibold shadow-lg'
-                                        : 'text-white/80 hover:bg-white/10'
-                                    }`}
-                            >
-                                <div className="flex items-center gap-3">
-                                    <span className="text-sm">{lang.name}</span>
-                                    <span className={`text-xs ${language === lang.code ? 'text-white/80' : 'text-white/50'}`}>
-                                        {lang.label}
-                                    </span>
-                                </div>
-                                {language === lang.code && <Check size={16} />}
-                            </button>
-                        ))}
+                <div className="absolute right-0 mt-3 w-56 rounded-2xl border border-white/10 bg-[#050505]/90 backdrop-blur-2xl shadow-[0_20px_50px_-10px_rgba(0,0,0,0.8)] p-1.5 z-50 animate-in fade-in zoom-in-95 slide-in-from-top-2 duration-200 origin-top-right ring-1 ring-white/5">
+                    {/* Decorative Neon Line */}
+                    <div className="absolute inset-x-4 top-0 h-px bg-gradient-to-r from-transparent via-purple-500/50 to-transparent" />
+
+                    <div className="flex flex-col gap-0.5 relative">
+                        {languages.map((lang) => {
+                            const isActive = language === lang.code;
+                            return (
+                                <button
+                                    key={lang.code}
+                                    onClick={() => {
+                                        setLanguage(lang.code);
+                                        setIsOpen(false);
+                                    }}
+                                    className={cn(
+                                        "relative flex items-center justify-between w-full px-3 py-2.5 rounded-xl text-left transition-all duration-200 group/item overflow-hidden",
+                                        isActive
+                                            ? "bg-purple-500/10 border border-purple-500/30 text-purple-200 shadow-[0_0_10px_rgba(168,85,247,0.1)]"
+                                            : "text-white/60 hover:text-white hover:bg-white/5 border border-transparent"
+                                    )}
+                                >
+                                    {/* Hover Glow Effect */}
+                                    {!isActive && (
+                                        <div className="absolute inset-0 opacity-0 group-hover/item:opacity-100 bg-gradient-to-r from-purple-500/10 to-transparent transition-opacity duration-300" />
+                                    )}
+
+                                    <div className="flex items-center gap-3 relative z-10">
+                                        <span className={cn(
+                                            "text-sm font-medium tracking-wide",
+                                            isActive ? "text-purple-100" : "group-hover/item:text-white"
+                                        )}>
+                                            {lang.name}
+                                        </span>
+                                    </div>
+
+                                    {isActive && (
+                                        <Check size={14} className="text-purple-400 drop-shadow-[0_0_5px_rgba(168,85,247,0.8)]" />
+                                    )}
+                                </button>
+                            );
+                        })}
                     </div>
                 </div>
             )}

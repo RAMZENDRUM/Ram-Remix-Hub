@@ -8,8 +8,8 @@ import styles from './RemixCard.module.css';
 interface RemixCardProps {
     id: string;
     title: string;
-    artist?: string;
-    coverUrl?: string;
+    artist?: string | null;
+    coverUrl?: string | null;
 }
 
 const RemixCard: React.FC<RemixCardProps> = ({ id, title, artist = "Ram", coverUrl }) => {

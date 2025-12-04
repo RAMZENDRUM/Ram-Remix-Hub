@@ -12,27 +12,47 @@ export async function PATCH(req: Request) {
 
     try {
         const body = await req.json();
-        const { displayName, age, country, favoriteGenres } = body;
+        console.log("[PROFILE_UPDATE] Request body:", body);
+        const { displayName, age, country, favoriteGenres, profileImageUrl } = body;
 
         // Basic validation
         if (!displayName || displayName.trim() === "") {
             return new NextResponse("Display name is required", { status: 400 });
         }
 
-        if (age && (age < 13 || age > 120)) {
-            return new NextResponse("Invalid age", { status: 400 });
+        if (age && (age < 3 || age > 120)) {
+            return new NextResponse("Invalid age (must be 3+)", { status: 400 });
         }
 
-        const updatedUser = await prisma.user.update({
-            where: {
-                id: session.user.id,
-            },
-            data: {
-                name: displayName,
-                age: age ? parseInt(age) : null,
-                country: country,
-                favoriteGenres: favoriteGenres,
-            },
+        // Check if user exists
+        const existingUser = await prisma.user.findUnique({
+            where: { id: session.user.id },
+        });
+
+        if (!existingUser) {
+            return new NextResponse("User not found", { status: 404 });
+        }
+
+        // Use raw SQL to bypass stale Prisma Client types (dev server lock prevents regeneration)
+        const now = new Date();
+        const genresJson = favoriteGenres ? JSON.stringify(favoriteGenres) : null;
+        const ageVal = age !== null && age !== undefined ? parseInt(String(age)) : null;
+
+        await prisma.$executeRaw`
+            UPDATE User 
+            SET name = ${displayName}, 
+                age = ${ageVal}, 
+                country = ${country}, 
+                favoriteGenres = ${genresJson}, 
+                profileImageUrl = ${profileImageUrl}, 
+                image = ${profileImageUrl || null},
+                updatedAt = ${now}
+            WHERE id = ${session.user.id}
+        `;
+
+        // Fetch the updated user to return
+        const updatedUser = await prisma.user.findUnique({
+            where: { id: session.user.id }
         });
 
         return NextResponse.json(updatedUser);

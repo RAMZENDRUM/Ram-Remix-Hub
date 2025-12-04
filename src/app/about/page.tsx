@@ -1,5 +1,6 @@
 import React from 'react';
 import { Mail, MapPin, Music, Cpu, Instagram } from 'lucide-react';
+import { MetallicAvatar } from '@/components/ui/MetallicAvatar';
 
 // Manually adding Spotify icon
 const Spotify = ({ className }: { className?: string }) => (
@@ -47,13 +48,8 @@ export default function AboutPage() {
 
                         {/* Avatar / Logo */}
                         <div className="relative group">
-                            <div className="absolute -inset-1 bg-gradient-to-r from-purple-600 to-indigo-600 rounded-full blur opacity-75 group-hover:opacity-100 transition duration-1000 group-hover:duration-200 animate-tilt"></div>
-                            <div className="relative w-48 h-48 md:w-64 md:h-64 rounded-full bg-black p-1 ring-1 ring-white/10 flex items-center justify-center overflow-hidden">
-                                <div className="absolute inset-0 bg-[conic-gradient(from_90deg_at_50%_50%,#E2CBFF_0%,#393BB2_50%,#E2CBFF_100%)] animate-[spin_4s_linear_infinite] opacity-20" />
-                                <div className="absolute inset-1 rounded-full bg-neutral-950 flex items-center justify-center">
-                                    <span className="text-7xl md:text-8xl font-bold text-transparent bg-clip-text bg-gradient-to-br from-white to-purple-500 tracking-tighter">R</span>
-                                </div>
-                            </div>
+                            <div className="absolute -inset-1 bg-gradient-to-r from-neutral-700 to-neutral-500 rounded-full blur opacity-75 group-hover:opacity-100 transition duration-1000 group-hover:duration-200 animate-tilt"></div>
+                            <MetallicAvatar name="Ram" size="xl" className="w-48 h-48 md:w-64 md:h-64 text-7xl md:text-8xl" />
                         </div>
 
                         {/* Info */}

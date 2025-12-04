@@ -9,7 +9,7 @@ import { prisma } from "@/lib/prisma";
 export default async function ProfilePage() {
     const session = await getServerSession(authOptions);
 
-    if (!session) {
+    if (!session || !session.user?.id) {
         redirect("/auth");
     }
 
@@ -24,11 +24,23 @@ export default async function ProfilePage() {
 
     const role = (user as any).role;
 
+    // Parse favoriteGenres if it's a string (JSON)
+    let parsedUser = { ...user } as any;
+    if (typeof user.favoriteGenres === 'string') {
+        try {
+            parsedUser.favoriteGenres = JSON.parse(user.favoriteGenres);
+        } catch (e) {
+            parsedUser.favoriteGenres = [];
+        }
+    } else if (!user.favoriteGenres) {
+        parsedUser.favoriteGenres = [];
+    }
+
     if (role === "ADMIN" || role === "CREATOR") {
         const overview = await getCreatorOverview(user.id);
-        return <CreatorDashboard user={user} overview={overview} />;
+        return <CreatorDashboard user={parsedUser} overview={overview} />;
     }
 
     // normal user
-    return <ListenerProfile user={user} />;
+    return <ListenerProfile user={parsedUser} />;
 }

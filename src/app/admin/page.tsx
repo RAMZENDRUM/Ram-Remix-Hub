@@ -27,7 +27,7 @@ interface Track {
 export default function AdminDashboard() {
     const { data: session, status } = useSession();
     const router = useRouter();
-    const { pushToast } = useToast();
+    const { showToast } = useToast();
 
     const [tracks, setTracks] = useState<Track[]>([]);
     const [editingTrackId, setEditingTrackId] = useState<string | null>(null);
@@ -60,9 +60,9 @@ export default function AdminDashboard() {
             }
         } catch (error) {
             console.error("Failed to fetch tracks", error);
-            pushToast("error", "Failed to fetch tracks");
+            showToast({ variant: "error", message: "Failed to fetch tracks" });
         }
-    }, [pushToast]);
+    }, [showToast]);
 
     useEffect(() => {
         if (status === 'loading') return;
@@ -87,13 +87,13 @@ export default function AdminDashboard() {
         try {
             const res = await fetch(`/api/admin/tracks/${trackToDelete.id}`, { method: 'DELETE' });
             if (res.ok) {
-                pushToast("success", "Track deleted successfully");
+                showToast({ variant: "success", message: "Track deleted successfully" });
                 fetchTracks();
             } else {
                 throw new Error('Failed to delete');
             }
         } catch (e) {
-            pushToast("error", "Error deleting track");
+            showToast({ variant: "error", message: "Error deleting track" });
         } finally {
             setConfirmOpen(false);
             setTrackToDelete(null);
@@ -114,7 +114,10 @@ export default function AdminDashboard() {
                 const signRes = await fetch('/api/admin/sign-cloudinary', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ folder: `ram-remix-hub/${folder}` }),
+                    body: JSON.stringify({
+                        folder: `ram-remix-hub/${folder}`,
+                        preset: folder === 'audio' ? 'admin_remix_audio' : 'admin_remix_cover'
+                    }),
                 });
 
                 if (!signRes.ok) {
@@ -135,7 +138,8 @@ export default function AdminDashboard() {
                 formData.append('api_key', apiKey);
                 formData.append('timestamp', timestamp.toString());
                 formData.append('signature', signature);
-                formData.append('folder', `ram-remix-hub/${folder}`);
+                // formData.append('folder', `ram-remix-hub/${folder}`); // Preset handles folder
+                formData.append('upload_preset', folder === 'audio' ? 'admin_remix_audio' : 'admin_remix_cover');
 
                 const uploadRes = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/${resourceType}/upload`, {
                     method: 'POST',
@@ -199,7 +203,7 @@ export default function AdminDashboard() {
                 throw new Error(errData.error || 'Operation failed');
             }
 
-            pushToast("success", editingTrackId ? "Track updated successfully!" : "Track uploaded successfully!");
+            showToast({ variant: "success", message: editingTrackId ? "Track updated successfully!" : "Track uploaded successfully!" });
             setShowUpload(false);
             setEditingTrackId(null);
             // Reset form
@@ -217,7 +221,7 @@ export default function AdminDashboard() {
 
         } catch (error: any) {
             console.error("Upload flow error:", error);
-            pushToast("error", error.message);
+            showToast({ variant: "error", message: error.message });
         } finally {
             setIsUploading(false);
         }

@@ -69,6 +69,11 @@
     --chart-3: 197 37% 24%;
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
+
+    /* Glass UI Variables */
+    --glass-accent: rgba(255, 255, 255, 0.85);
+    --glass-accent-soft: rgba(255, 255, 255, 0.45);
+    --glass-bg: rgba(255, 255, 255, 0.10);
   }
   .dark {
     --background: 0 0% 3.9%;

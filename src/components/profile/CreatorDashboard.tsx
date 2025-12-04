@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { useLanguage } from "@/context/LanguageContext";
 import { EditProfileModal } from './EditProfileModal';
+import { MetallicAvatar } from '@/components/ui/MetallicAvatar';
 
 interface CreatorDashboardProps {
     user: any;
@@ -60,20 +61,8 @@ export function CreatorDashboard({ user, overview }: CreatorDashboardProps) {
                 <div className="relative z-10 flex flex-col md:flex-row items-center md:items-start gap-8">
                     {/* Avatar */}
                     <div className="relative">
-                        <div className="w-32 h-32 rounded-full p-1 bg-gradient-to-br from-purple-500 via-fuchsia-500 to-blue-500 animate-spin-slow">
-                            <div className="w-full h-full rounded-full bg-black p-1">
-                                <div className="w-full h-full rounded-full overflow-hidden relative">
-                                    {user.image ? (
-                                        <img src={user.image} alt={user.name || 'User'} className="w-full h-full object-cover" />
-                                    ) : (
-                                        <div className="w-full h-full bg-neutral-800 flex items-center justify-center text-2xl font-bold">
-                                            {user.name?.substring(0, 2).toUpperCase()}
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-                        <div className="absolute bottom-0 right-0 bg-black rounded-full p-1 border border-white/10">
+                        <MetallicAvatar name={user.name} image={user.image} size="xl" />
+                        <div className="absolute bottom-2 right-2 bg-black rounded-full p-1 border border-white/10 z-10">
                             <div className="bg-green-500 w-4 h-4 rounded-full border-2 border-black" />
                         </div>
                     </div>

@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { signOut } from 'next-auth/react';
+import { signOut, useSession } from 'next-auth/react';
 import {
     Edit, LogOut, Globe, Check,
     ListMusic, Heart, Play, Clock, User as UserIcon
@@ -10,7 +10,7 @@ import {
 import { useLanguage } from "@/context/LanguageContext";
 import RemixCard from '@/components/RemixCard';
 import { EditProfileModal } from './EditProfileModal';
-import { MetallicAvatar } from '@/components/ui/MetallicAvatar';
+import { NeonAvatar } from "@/components/neon-avatar";
 
 interface ListenerProfileProps {
     user: any;
@@ -18,6 +18,7 @@ interface ListenerProfileProps {
 
 export function ListenerProfile({ user }: ListenerProfileProps) {
     const { language, setLanguage, t } = useLanguage();
+    const { data: session } = useSession();
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
     // State for Listener Data
@@ -69,7 +70,11 @@ export function ListenerProfile({ user }: ListenerProfileProps) {
                 <div className="relative z-10 flex flex-col md:flex-row items-center md:items-start gap-8">
                     {/* Avatar */}
                     <div className="relative">
-                        <MetallicAvatar name={user.name} image={user.image} size="xl" />
+                        <NeonAvatar
+                            name={user.name || session?.user?.name}
+                            imageUrl={user.profileImageUrl || user.image || session?.user?.image}
+                            size="xl"
+                        />
                     </div>
 
                     {/* Info */}
@@ -207,8 +212,6 @@ export function ListenerProfile({ user }: ListenerProfileProps) {
                     </div>
                 </section>
             </div>
-
-            {/* Removed Language & Region Settings */}
         </div>
     );
 }

@@ -10,7 +10,7 @@ import SearchComponent from './SearchComponent';
 import { LanguageSwitcher } from "./ui/language-switcher";
 import { useLanguage } from "@/context/LanguageContext";
 import { BrandLogo } from "@/components/BrandLogo";
-import { MetallicAvatar } from "@/components/ui/MetallicAvatar";
+import { NeonAvatar } from "@/components/neon-avatar";
 
 const Navbar = () => {
     const pathname = usePathname();
@@ -78,7 +78,11 @@ const Navbar = () => {
 
                             {user ? (
                                 <Link href="/profile" className="flex items-center gap-2">
-                                    <MetallicAvatar name={user.name} image={user.image} size="sm" />
+                                    <NeonAvatar
+                                        name={user.name}
+                                        imageUrl={user.image}
+                                        size="sm"
+                                    />
                                 </Link>
                             ) : (
                                 <Link href="/auth" className="p-2 text-neutral-400 hover:text-white transition-colors">
@@ -93,5 +97,6 @@ const Navbar = () => {
         </>
     );
 };
+
 
 export default Navbar;

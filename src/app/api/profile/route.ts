@@ -61,3 +61,22 @@ export async function PATCH(req: Request) {
         return new NextResponse("Internal Error", { status: 500 });
     }
 }
+
+export async function DELETE(req: Request) {
+    const session = await getServerSession(authOptions);
+
+    if (!session) {
+        return new NextResponse("Unauthorized", { status: 401 });
+    }
+
+    try {
+        await prisma.user.delete({
+            where: { id: session.user.id },
+        });
+
+        return new NextResponse("User deleted", { status: 200 });
+    } catch (error) {
+        console.error("[PROFILE_DELETE]", error);
+        return new NextResponse("Internal Error", { status: 500 });
+    }
+}

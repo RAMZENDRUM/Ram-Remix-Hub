@@ -1,11 +1,12 @@
 'use client';
 
 import React, { useState } from 'react';
-import { X, Check, ChevronDown, Plus, Minus, ChevronUp, Camera } from 'lucide-react';
+import { X, Check, ChevronDown, Plus, Minus, ChevronUp, Camera, Trash2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useToast } from "@/context/ToastContext";
-import { MetallicAvatar } from "@/components/ui/MetallicAvatar";
+import { NeonAvatar } from "@/components/neon-avatar";
 import { CountrySelect } from '@/components/ui/CountrySelect';
+import { useSession, signOut } from "next-auth/react";
 
 interface EditProfileModalProps {
     isOpen: boolean;
@@ -22,6 +23,7 @@ const GENRES = [
 
 export function EditProfileModal({ isOpen, onClose, user }: EditProfileModalProps) {
     const router = useRouter();
+    const { data: session, update } = useSession();
     const { showToast } = useToast();
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState("");
@@ -40,7 +42,7 @@ export function EditProfileModal({ isOpen, onClose, user }: EditProfileModalProp
         }
         return [];
     });
-    const [profileImageUrl, setProfileImageUrl] = useState<string | null>(user.image || null);
+    const [profileImageUrl, setProfileImageUrl] = useState<string | null>(user.profileImageUrl || user.image || null);
     const [isUploading, setIsUploading] = useState(false);
 
     if (!isOpen) return null;
@@ -137,6 +139,14 @@ export function EditProfileModal({ isOpen, onClose, user }: EditProfileModalProp
             }
 
             // Success
+            await update({
+                ...session,
+                user: {
+                    ...session?.user,
+                    name: displayName,
+                    image: profileImageUrl
+                }
+            });
             router.refresh(); // Refresh server components to show new data
             onClose();
             showToast({ variant: "success", message: "Profile updated successfully." });
@@ -144,6 +154,30 @@ export function EditProfileModal({ isOpen, onClose, user }: EditProfileModalProp
             console.error(err);
             setError("Could not save changes. Please try again.");
         } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleDeleteAccount = async () => {
+        if (!confirm("Are you sure you want to delete your account? This action cannot be undone and you will lose all your data.")) {
+            return;
+        }
+
+        setIsLoading(true);
+        try {
+            const res = await fetch('/api/profile', {
+                method: 'DELETE',
+            });
+
+            if (!res.ok) {
+                throw new Error("Failed to delete account");
+            }
+
+            showToast({ variant: "success", message: "Account deleted successfully." });
+            signOut({ callbackUrl: '/' });
+        } catch (error) {
+            console.error(error);
+            setError("Could not delete account. Please try again.");
             setIsLoading(false);
         }
     };
@@ -162,7 +196,7 @@ export function EditProfileModal({ isOpen, onClose, user }: EditProfileModalProp
 
                 <div className="mb-6 flex flex-col items-center text-center">
                     <div className="mb-4 relative group">
-                        <MetallicAvatar name={displayName} image={profileImageUrl} size="lg" />
+                        <NeonAvatar name={displayName} imageUrl={profileImageUrl} size="lg" />
                         <label className="absolute bottom-0 right-0 p-2 bg-neutral-900 rounded-full border border-white/10 text-white/70 hover:text-white hover:bg-neutral-800 cursor-pointer transition-colors shadow-lg">
                             <Camera size={14} />
                             <input
@@ -280,6 +314,17 @@ export function EditProfileModal({ isOpen, onClose, user }: EditProfileModalProp
                             className="w-full bg-white/5 text-white/80 rounded-full py-2.5 border border-white/10 hover:bg-white/10 transition-colors"
                         >
                             Cancel
+                        </button>
+                    </div>
+
+                    {/* Danger Zone */}
+                    <div className="pt-6 border-t border-white/10 mt-2">
+                        <button
+                            onClick={handleDeleteAccount}
+                            disabled={isLoading}
+                            className="w-full flex items-center justify-center gap-2 text-red-400 hover:text-red-300 hover:bg-red-500/10 py-2.5 rounded-full transition-colors text-sm font-medium"
+                        >
+                            <Trash2 size={16} /> Delete Account
                         </button>
                     </div>
                 </div>

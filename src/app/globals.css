@@ -75,6 +75,7 @@
     --glass-accent-soft: rgba(255, 255, 255, 0.45);
     --glass-bg: rgba(255, 255, 255, 0.10);
   }
+
   .dark {
     --background: 0 0% 3.9%;
     --foreground: 0 0% 98%;
@@ -219,4 +220,22 @@
 
 .audio-wave::before {
   border-color: rgba(56, 189, 248, 0.12);
+}
+
+@keyframes pulse-soft {
+
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.9;
+  }
+
+  50% {
+    transform: scale(1.04);
+    opacity: 1;
+  }
+}
+
+.pulse-soft {
+  animation: pulse-soft 3.2s ease-in-out infinite;
 }

@@ -67,14 +67,18 @@ export default function AdminDashboard() {
     useEffect(() => {
         if (status === 'loading') return;
 
-        if (!session || session.user?.email !== 'ramzendrum@gmail.com') {
+        // Allow if role is ADMIN OR if email matches (legacy check)
+        const isAdmin = (session?.user as any)?.role === 'ADMIN' || session?.user?.email === 'ramzendrum@gmail.com';
+
+        if (!session || !isAdmin) {
             router.push('/');
         } else {
             fetchTracks();
         }
     }, [session, status, router, fetchTracks]);
 
-    if (status === 'loading' || !session || session.user?.email !== 'ramzendrum@gmail.com') return null;
+    const isAdmin = (session?.user as any)?.role === 'ADMIN' || session?.user?.email === 'ramzendrum@gmail.com';
+    if (status === 'loading' || !session || !isAdmin) return null;
 
     const onDeleteClick = (track: Track) => {
         setTrackToDelete(track);

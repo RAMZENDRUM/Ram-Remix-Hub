@@ -20,8 +20,8 @@ const Navbar = () => {
 
     const [isSearchOpen, setIsSearchOpen] = useState(false);
 
-    // Simple admin check based on email
-    const isAdmin = user?.email === 'ramzendrum@gmail.com';
+    // Check for admin role or legacy email
+    const isAdmin = (user as any)?.role === 'ADMIN' || user?.email === 'ramzendrum@gmail.com';
 
     const navLinks = [
         { name: t("nav.home"), href: "/", icon: Home },

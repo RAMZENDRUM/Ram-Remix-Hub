@@ -53,6 +53,10 @@ export function EditProfileModal({ isOpen, onClose, user }: EditProfileModalProp
         }
     };
 
+    const handleRemovePhoto = () => {
+        setProfileImageUrl(null);
+    };
+
     const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
@@ -67,8 +71,11 @@ export function EditProfileModal({ isOpen, onClose, user }: EditProfileModalProp
             formData.append('upload_preset', 'user_profile_private'); // Unsigned preset
 
             // Note: NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME must be set in .env
-            const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
+            let cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
             if (!cloudName) throw new Error("Missing Cloudinary Cloud Name");
+
+            // Sanitize cloud name (remove spaces if present, common user error)
+            cloudName = cloudName.trim().replace(/\s+/g, '');
 
             const uploadRes = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
                 method: 'POST',
@@ -78,15 +85,15 @@ export function EditProfileModal({ isOpen, onClose, user }: EditProfileModalProp
             if (!uploadRes.ok) {
                 const errorText = await uploadRes.text();
                 console.error("Cloudinary Upload Error:", errorText);
-                throw new Error(`Cloudinary upload failed: ${uploadRes.statusText}`);
+                throw new Error(`Cloudinary upload failed: ${uploadRes.statusText} - Check your Cloud Name and Preset`);
             }
             const data = await uploadRes.json();
 
             setProfileImageUrl(data.secure_url);
             showToast({ variant: "success", message: "Image uploaded successfully" });
-        } catch (err) {
+        } catch (err: any) {
             console.error(err);
-            showToast({ variant: "error", message: "Could not upload image. Please try again." });
+            setError(err.message || "Could not upload image. Please try again.");
         } finally {
             setIsUploading(false);
         }
@@ -167,6 +174,16 @@ export function EditProfileModal({ isOpen, onClose, user }: EditProfileModalProp
                             />
                         </label>
                     </div>
+
+                    {profileImageUrl && (
+                        <button
+                            onClick={handleRemovePhoto}
+                            className="text-xs text-red-400 hover:text-red-300 mb-2 hover:underline"
+                        >
+                            Remove Photo
+                        </button>
+                    )}
+
                     <h2 className="text-2xl font-bold text-white mb-1">Edit Profile</h2>
                     <p className="text-sm text-white/60">Update how your profile appears in Ram Remix Hub.</p>
                 </div>

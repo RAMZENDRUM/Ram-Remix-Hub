@@ -46,10 +46,7 @@ export function HomeRemixCard({ remix }: { remix: Remix }) {
                 <p className="text-xs text-white/50">{remix.artist}</p>
             </div>
 
-            {/* tiny neon play dot */}
-            <div className="pointer-events-none absolute bottom-3 right-3 flex h-7 w-7 items-center justify-center rounded-full border border-white/15 bg-white/5">
-                <div className="h-3 w-3 rounded-full bg-cyan-300 shadow-[0_0_12px_rgba(103,232,249,0.8)] group-hover:scale-110 transition-transform" />
-            </div>
+
         </Link>
     );
 }

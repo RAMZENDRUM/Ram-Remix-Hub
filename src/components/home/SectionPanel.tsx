@@ -15,7 +15,7 @@ export function SectionPanel({ title, subtitle, href, remixes }: SectionPanelPro
             {/* subtle underglow line */}
             <div className="pointer-events-none absolute -bottom-2 left-4 right-4 h-[1px] bg-gradient-to-r from-transparent via-cyan-300/50 to-transparent blur-[2px] opacity-60" />
 
-            <div className="rounded-3xl bg-white/[0.04] border border-white/10 backdrop-blur-xl shadow-[0_24px_70px_rgba(0,0,0,0.8)] px-5 py-5 sm:px-7 sm:py-6">
+            <div className="rounded-3xl bg-black/35 border border-white/8 backdrop-blur-xl shadow-[0_24px_70px_rgba(0,0,0,0.8)] px-5 py-5 sm:px-7 sm:py-6">
                 <div className="mb-5 flex items-center justify-between gap-4">
                     <div>
                         <h2 className="text-lg sm:text-xl font-semibold text-white">

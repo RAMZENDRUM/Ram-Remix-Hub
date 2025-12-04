@@ -245,7 +245,7 @@ export default function RemixDetail({ params }: { params: Promise<{ id: string }
                                 )}
                             </div>
 
-                            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-white via-white to-purple-300 leading-tight">
+                            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-white via-white to-purple-300 leading-normal pb-2">
                                 {track.title}
                             </h1>
 

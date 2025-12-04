@@ -288,160 +288,129 @@ export default function GlobalPlayer() {
             </footer>
         );
     }
-
     const isLiked = likedIds.has(currentTrack.id);
 
     return (
         <>
-            <footer className={cn(
-                "fixed bottom-4 left-1/2 -translate-x-1/2 w-[95%] md:w-[90%] max-w-[900px] bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-4 flex items-center justify-between shadow-[0_0_25px_rgba(0,0,0,0.4)] z-50 transition-all duration-300",
-                miniMode ? "py-2" : ""
-            )}>
-                <audio
-                    ref={audioRef}
-                    src={currentTrack.audioUrl}
-                    crossOrigin="anonymous"
-                    onLoadedMetadata={handleLoadedMetadata}
-                    onTimeUpdate={handleTimeUpdate}
-                />
+            <div className="fixed inset-x-0 bottom-4 z-50 flex justify-center px-4 pointer-events-none">
+                <div className="pointer-events-auto relative flex w-full max-w-4xl items-center gap-4 rounded-2xl bg-black/65 backdrop-blur-2xl border border-white/10 shadow-[0_18px_45px_rgba(0,0,0,0.9)] px-4 py-3 transition-all duration-300">
+                    {/* NEON EDGE */}
+                    <div className="pointer-events-none absolute -inset-px rounded-2xl bg-[conic-gradient(from_180deg_at_50%_50%,rgba(56,189,248,0.7),rgba(168,85,247,0.7),rgba(56,189,248,0.7))] opacity-40 blur-[6px]" />
 
-                {/* Left: Track Info */}
-                <div className="flex items-center gap-4 w-[30%] min-w-0">
-                    <div className={cn(
-                        "relative overflow-hidden rounded-xl bg-neutral-800/80 flex-shrink-0 border border-white/10 transition-all duration-300",
-                        miniMode ? "h-10 w-10" : "h-14 w-14"
-                    )}>
-                        {currentTrack.coverImageUrl ? (
-                            <Image
-                                src={currentTrack.coverImageUrl}
-                                alt={currentTrack.title}
-                                fill
-                                className="object-cover"
-                            />
-                        ) : (
-                            <div className="flex h-full w-full items-center justify-center text-[10px] text-neutral-400">
-                                No Art
+                    <div className="relative z-10 flex w-full items-center gap-4">
+                        <audio
+                            ref={audioRef}
+                            src={currentTrack.audioUrl}
+                            crossOrigin="anonymous"
+                            onLoadedMetadata={handleLoadedMetadata}
+                            onTimeUpdate={handleTimeUpdate}
+                        />
+
+                        {/* Left: Track Info */}
+                        <div className="flex min-w-0 flex-1 items-center gap-3">
+                            <div className="relative h-10 w-10 overflow-hidden rounded-lg border border-white/10 flex-shrink-0">
+                                {currentTrack.coverImageUrl ? (
+                                    <Image
+                                        src={currentTrack.coverImageUrl}
+                                        alt={currentTrack.title}
+                                        fill
+                                        className="object-cover"
+                                    />
+                                ) : (
+                                    <div className="flex h-full w-full items-center justify-center bg-neutral-800 text-[8px] text-neutral-400">
+                                        No Art
+                                    </div>
+                                )}
                             </div>
-                        )}
-                    </div>
-                    <div className="flex flex-col min-w-0">
-                        <span className="truncate text-sm font-medium text-white hover:underline cursor-pointer">
-                            {currentTrack.title}
-                        </span>
-                        {!miniMode && (
-                            <div className="flex items-center gap-2 text-xs text-white/50">
-                                <span className="truncate max-w-[120px]">
+                            <div className="min-w-0">
+                                <p className="truncate text-sm font-medium text-white cursor-pointer hover:underline" onClick={() => setInfoOpen(true)}>
+                                    {currentTrack.title}
+                                </p>
+                                <p className="truncate text-xs text-white/50">
                                     {currentTrack.artist || "Unknown Artist"}
-                                </span>
+                                </p>
                             </div>
-                        )}
-                    </div>
-                </div>
-
-                {/* Center: Controls + Seek */}
-                <div className="flex flex-col flex-1 items-center gap-2 max-w-[60%]">
-                    {!miniMode && (
-                        <div className="flex items-center gap-6">
-                            <button
-                                onClick={toggleShuffle}
-                                className={`transition-colors ${isShuffle ? 'text-purple-400' : 'text-white/40 hover:text-white'}`}
-                            >
-                                <Shuffle size={18} />
-                            </button>
-
-                            <button
-                                onClick={prevTrack}
-                                className="text-white/70 hover:text-white transition-colors active:scale-95"
-                            >
-                                <SkipBack size={22} fill="currentColor" />
-                            </button>
-
-                            <PlayButton
-                                variant="circle"
-                                isPlaying={isPlaying}
-                                onClick={togglePlay}
-                                className="w-12 h-12 rounded-full border border-white/40 bg-white/10 hover:bg-white/20 transition flex items-center justify-center backdrop-blur-md shadow-none"
-                            />
-
-                            <button
-                                onClick={nextTrack}
-                                className="text-white/70 hover:text-white transition-colors active:scale-95"
-                            >
-                                <SkipForward size={22} fill="currentColor" />
-                            </button>
-
-                            <button
-                                onClick={toggleLoopMode}
-                                className={`transition-colors relative ${loopMode !== 'off' ? 'text-purple-400' : 'text-white/40 hover:text-white'}`}
-                            >
-                                <Repeat size={18} />
-                                {loopMode === 'track' && <span className="absolute text-[8px] font-bold top-0 right-0">1</span>}
-                            </button>
                         </div>
-                    )}
 
-                    <div className="flex w-full items-center gap-3 text-[10px] font-medium text-white/40">
-                        <span className="w-8 text-right tabular-nums">{formatTime(currentTime)}</span>
-                        <CustomSlider
-                            min={0}
-                            max={duration || 0}
-                            value={currentTime}
-                            onChange={handleSeek}
-                            className="flex-1"
-                        />
-                        <span className="w-8 tabular-nums">{formatTime(duration)}</span>
-                    </div>
-                </div>
+                        {/* Center: Controls */}
+                        <div className="flex flex-1 flex-col items-center gap-1 max-w-md">
+                            <div className="flex items-center gap-4">
+                                <button
+                                    onClick={prevTrack}
+                                    className="flex h-7 w-7 items-center justify-center rounded-full bg-white/5 hover:bg-white/10 transition border border-white/10 text-white/80 hover:text-white"
+                                >
+                                    <SkipBack size={14} fill="currentColor" />
+                                </button>
 
-                {/* Right: Volume & Extras */}
-                <div className="flex items-center gap-4 w-[30%] justify-end">
-                    <div className="flex items-center gap-2 group">
-                        <button onClick={toggleMute} className="text-white/40 hover:text-white transition-colors">
-                            {isMuted || volume === 0 ? <VolumeX size={18} /> : volume < 0.5 ? <Volume1 size={18} /> : <Volume2 size={18} />}
-                        </button>
-                        <CustomSlider
-                            min={0}
-                            max={100}
-                            value={isMuted ? 0 : volume * 100}
-                            onChange={handleVolumeChange}
-                            className="w-20"
-                        />
-                    </div>
+                                <button
+                                    onClick={togglePlay}
+                                    className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-white/90 to-white/60 shadow-[0_10px_25px_rgba(0,0,0,0.9)] relative hover:scale-105 transition-transform"
+                                >
+                                    <div className="absolute inset-[2px] rounded-full bg-black/90 flex items-center justify-center">
+                                        {isPlaying ? (
+                                            <Pause size={14} className="text-white fill-white" />
+                                        ) : (
+                                            <Play size={14} className="text-white fill-white ml-0.5" />
+                                        )}
+                                    </div>
+                                </button>
 
-                    {!miniMode && (
-                        <div className="hidden md:flex items-center gap-2">
+                                <button
+                                    onClick={nextTrack}
+                                    className="flex h-7 w-7 items-center justify-center rounded-full bg-white/5 hover:bg-white/10 transition border border-white/10 text-white/80 hover:text-white"
+                                >
+                                    <SkipForward size={14} fill="currentColor" />
+                                </button>
+                            </div>
+
+                            {/* Progress Bar */}
+                            <div className="flex w-full items-center gap-2">
+                                <span className="text-[10px] text-white/40 tabular-nums w-8 text-right">{formatTime(currentTime)}</span>
+                                <div className="relative flex-1 h-3 flex items-center group">
+                                    <CustomSlider
+                                        min={0}
+                                        max={duration || 0}
+                                        value={currentTime}
+                                        onChange={handleSeek}
+                                        className="w-full"
+                                    />
+                                </div>
+                                <span className="text-[10px] text-white/40 tabular-nums w-8">{formatTime(duration)}</span>
+                            </div>
+                        </div>
+
+                        {/* Right: Volume & Extras */}
+                        <div className="hidden sm:flex items-center gap-3 flex-1 justify-end">
+                            <div className="flex items-center gap-2 w-24 group">
+                                <button onClick={toggleMute} className="text-white/60 hover:text-white transition-colors">
+                                    {isMuted || volume === 0 ? <VolumeX size={14} /> : volume < 0.5 ? <Volume1 size={14} /> : <Volume2 size={14} />}
+                                </button>
+                                <CustomSlider
+                                    min={0}
+                                    max={100}
+                                    value={isMuted ? 0 : volume * 100}
+                                    onChange={handleVolumeChange}
+                                    className="flex-1"
+                                />
+                            </div>
+
+                            <button
+                                onClick={() => setInfoOpen(prev => !prev)}
+                                className={`h-7 w-7 rounded-full border border-white/10 flex items-center justify-center transition ${infoOpen ? 'bg-white/20 text-white' : 'bg-white/5 text-white/70 hover:bg-white/10'}`}
+                            >
+                                <Info size={14} />
+                            </button>
+
                             <button
                                 onClick={() => setQueueOpen(prev => !prev)}
-                                className={`p-2 rounded-full transition-colors ${queueOpen ? 'bg-white/10 text-white' : 'text-white/40 hover:text-white hover:bg-white/5'}`}
+                                className={`h-7 w-7 rounded-full border border-white/10 flex items-center justify-center transition ${queueOpen ? 'bg-white/20 text-white' : 'bg-white/5 text-white/70 hover:bg-white/10'}`}
                             >
-                                <ListMusic size={18} />
+                                <ListMusic size={14} />
                             </button>
-                        </div>
-                    )}
-
-                    <button
-                        onClick={() => setMiniMode(prev => !prev)}
-                        className="text-white/40 hover:text-white transition-colors p-2"
-                    >
-                        {miniMode ? <Maximize2 size={18} /> : <Minimize2 size={18} />}
-                    </button>
-                </div>
-            </footer>
-
-            {/* Queue Panel */}
-            {queueOpen && !miniMode && (
-                <div className="fixed bottom-20 right-4 z-40 w-64 rounded-2xl border border-neutral-700/80 bg-neutral-950/95 backdrop-blur-xl shadow-2xl shadow-black/60 p-3 space-y-2 animate-in slide-in-from-bottom-2 fade-in duration-200">
-                    <h3 className="text-xs font-semibold text-neutral-200 mb-1 px-1">
-                        Up Next
-                    </h3>
-                    <div className="max-h-64 space-y-1 overflow-y-auto">
-                        {/* Placeholder for queue items */}
-                        <div className="px-2 py-4 text-center text-xs text-neutral-500 italic">
-                            Queue is empty
                         </div>
                     </div>
                 </div>
-            )}
+            </div>
 
             {/* Track Info Overlay */}
             <TrackInfoOverlay

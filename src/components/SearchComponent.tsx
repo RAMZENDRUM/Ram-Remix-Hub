@@ -8,9 +8,8 @@ const SearchComponent = () => {
             <div id="poda" className="relative flex items-center justify-center group">
                 {/* Outer neon layers - Reduced size and fully rounded */}
                 <div className="absolute z-[-1] overflow-hidden h-full w-full max-h-[50px] max-w-[260px] rounded-full blur-[3px]
-                        before:absolute before:content-[''] before:z-[-2] before:w-[999px] before:h-[999px] before:bg-no-repeat before:top-1/2 before:left-1/2 before:-translate-x-1/2 before:-translate-y-1/2 before:rotate-60
-                        before:bg-[conic-gradient(#000,#402fb5_5%,#000_38%,#000_50%,#cf30aa_60%,#000_87%)] before:transition-all before:duration-2000
-                        group-hover:before:rotate-[-120deg] group-focus-within:before:rotate-[420deg] group-focus-within:before:duration-[4000ms]" />
+                        before:absolute before:content-[''] before:z-[-2] before:w-full before:h-full before:bg-no-repeat
+                        before:bg-[linear-gradient(to_right,#a855f7,#ec4899,#06b6d4)]" />
 
                 {/* Inner layers - Fully rounded */}
                 <div className="absolute z-[-1] overflow-hidden h-[96%] w-[96%] rounded-full blur-[3px] bg-black" />

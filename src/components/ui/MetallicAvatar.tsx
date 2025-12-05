@@ -35,7 +35,7 @@ export function MetallicAvatar({ name, image, size = "md", className }: Metallic
                         "flex w-full h-full items-center justify-center rounded-full",
                         // BLACK METALLIC / 3D LOOK - Forced with !important to ensure override
                         "bg-gradient-to-br from-[#050608] via-[#15171d] to-[#21242c] !important",
-                        "shadow-[0_0_0_1px_rgba(255,255,255,0.08),0_10px_25px_rgba(0,0,0,0.9)] !important",
+                        "shadow-[0_0_0_1px_rgba(255,255,255,0.08),0_0_20px_rgba(124,58,237,0.5),0_10px_25px_rgba(0,0,0,0.9)] !important",
                         "border border-white/10 !important",
                         "text-white font-semibold !important"
                     )}

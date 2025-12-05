@@ -4,6 +4,7 @@ import React, { useState, useMemo } from 'react';
 import { TrendingUp } from 'lucide-react';
 import TrackRow from './TrackRow';
 import { usePlayer } from '@/context/PlayerContext';
+import { CustomDropdown } from '@/components/ui/CustomDropdown';
 
 interface Track {
     id: string;
@@ -23,7 +24,7 @@ interface ReleaseListProps {
 }
 
 export function ReleaseList({ initialTracks }: ReleaseListProps) {
-    const { playQueue, togglePlay, isPlaying, currentTrack } = usePlayer();
+    const { playQueue, togglePlay, isPlaying, currentTrack, likedIds, toggleLike } = usePlayer();
     const [sortBy, setSortBy] = useState<'newest' | 'popular' | 'rated'>('newest');
 
     const getAverageRating = (ratings: { rating: number }[]) => {
@@ -72,19 +73,19 @@ export function ReleaseList({ initialTracks }: ReleaseListProps) {
                     </p>
                 </div>
 
-                <div className="relative z-20">
-                    <select
-                        value={sortBy}
-                        onChange={(e) => setSortBy(e.target.value as any)}
-                        className="appearance-none bg-neutral-900/80 backdrop-blur-md border border-white/10 text-white text-sm rounded-full pl-4 pr-10 py-2.5 outline-none focus:ring-2 focus:ring-purple-500/50 hover:bg-white/5 transition-colors cursor-pointer shadow-lg shadow-purple-900/10"
-                    >
-                        <option value="newest">Newest</option>
-                        <option value="popular">Most Popular</option>
-                        <option value="rated">Highest Rated</option>
-                    </select>
-                    <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-neutral-400">
-                        <TrendingUp size={14} />
-                    </div>
+                <div className="w-48 relative z-20">
+                    <CustomDropdown
+                        label=""
+                        name="sortBy"
+                        value={sortBy === 'newest' ? 'Newest' : sortBy === 'popular' ? 'Most Popular' : 'Highest Rated'}
+                        onChange={(val) => {
+                            if (val === 'Newest') setSortBy('newest');
+                            else if (val === 'Most Popular') setSortBy('popular');
+                            else if (val === 'Highest Rated') setSortBy('rated');
+                        }}
+                        options={["Newest", "Most Popular", "Highest Rated"]}
+                        placeholder="Sort By"
+                    />
                 </div>
             </div>
 
@@ -98,6 +99,8 @@ export function ReleaseList({ initialTracks }: ReleaseListProps) {
                         getAverageRating={getAverageRating}
                         isPlaying={currentTrack?.id === track.id && isPlaying}
                         onPlay={() => handlePlay(track)}
+                        isLiked={likedIds.has(track.id)}
+                        onLike={() => toggleLike(track.id)}
                     />
                 ))}
             </div>

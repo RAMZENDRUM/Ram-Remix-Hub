@@ -17,6 +17,7 @@ export default function LoginCard() {
 
     const searchParams = useSearchParams();
     const urlError = searchParams.get("error");
+    const callbackUrl = searchParams.get("callbackUrl") || "/";
 
     useEffect(() => {
         if (urlError === "OAuthAccountNotLinked") {
@@ -37,7 +38,7 @@ export default function LoginCard() {
         if (res?.error) {
             setError("Invalid email or password");
         } else {
-            router.push("/");
+            router.push(callbackUrl);
         }
     };
 
@@ -70,6 +71,7 @@ export default function LoginCard() {
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         className="bg-black/50 border-neutral-800 text-white placeholder:text-neutral-500 focus-visible:ring-neutral-700 h-11"
+                        autoComplete="email"
                     />
                 </div>
                 <div className="space-y-2">
@@ -80,6 +82,7 @@ export default function LoginCard() {
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         className="bg-black/50 border-neutral-800 text-white placeholder:text-neutral-500 focus-visible:ring-neutral-700 h-11"
+                        autoComplete="current-password"
                     />
                     <div className="flex justify-end">
                         <Link href="/forgot-password" className="text-sm text-neutral-400 hover:text-white hover:underline">
@@ -108,7 +111,7 @@ export default function LoginCard() {
                     variant="outline"
                     className="w-full border-neutral-800 bg-black/50 text-white hover:bg-neutral-900 hover:text-white h-11"
                     type="button"
-                    onClick={() => signIn("google", { callbackUrl: "/" })}
+                    onClick={() => signIn("google", { callbackUrl })}
                 >
                     <FcGoogle className="mr-2 h-5 w-5" />
                     Sign in with Google

@@ -32,7 +32,7 @@ export default function AboutPage() {
                 <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1511379938547-c1f69419868d?q=80&w=2070&auto=format&fit=crop')] bg-cover bg-center opacity-20 z-[-1]" />
 
                 <div className="relative z-10 text-center px-4">
-                    <h1 className="text-6xl md:text-8xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white via-purple-200 to-purple-400 mb-4 tracking-tighter leading-none drop-shadow-2xl">
+                    <h1 className="text-6xl md:text-8xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-100 via-purple-400 to-purple-600 mb-4 tracking-tighter leading-none drop-shadow-2xl">
                         About the Creator
                     </h1>
                     <p className="text-xl md:text-2xl text-neutral-400 max-w-2xl mx-auto font-light tracking-wide">

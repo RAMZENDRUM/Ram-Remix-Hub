@@ -122,7 +122,12 @@ export default function RemixDetail({ params }: { params: Promise<{ id: string }
                 const data = await res.json();
                 // Ensure context matches server state (should already match due to optimistic update)
                 const currentlyLiked = likedIds.has(track.id);
-                if (data.liked !== currentlyLiked) {
+                // If the server state (data.liked) matches the INITIAL state (currentlyLiked),
+                // it means the action effectively failed/did nothing, so we should revert our optimistic toggle.
+                // Or simplified: We want state to trigger toggle only if it doesn't match our 'new' state (!currentlyLiked).
+                // Since we want final state == data.liked, and current state == !currentlyLiked:
+                // If data.liked == currentlyLiked, we must toggle to get back to proper state.
+                if (data.liked === currentlyLiked) {
                     toggleLike(track.id);
                 }
                 showToast({ variant: "success", message: data.liked ? "Added to Favorites" : "Removed from Favorites" });
@@ -194,9 +199,9 @@ export default function RemixDetail({ params }: { params: Promise<{ id: string }
                         <div className="flex items-center justify-between gap-4 px-2">
                             <button
                                 onClick={handleLike}
-                                className={`flex-1 flex items-center justify-center py-3 rounded-full border transition-all duration-300 ${isLiked
-                                    ? "bg-fuchsia-500/20 border-fuchsia-500/50 text-fuchsia-400"
-                                    : "bg-white/5 border-white/10 text-white/70 hover:bg-white/10"
+                                className={`flex-1 flex items-center justify-center py-3 rounded-full border transition-all duration-300 shadow-[0_0_15px_rgba(168,85,247,0.3)] hover:shadow-[0_0_25px_rgba(168,85,247,0.5)] ${isLiked
+                                    ? "bg-fuchsia-500/20 border-fuchsia-500 text-fuchsia-400 shadow-[0_0_20px_rgba(236,72,153,0.5)]"
+                                    : "bg-black border-purple-500/50 text-white/70 hover:text-white hover:bg-black/80"
                                     }`}
                                 aria-label="Toggle favourite"
                             >
@@ -213,7 +218,7 @@ export default function RemixDetail({ params }: { params: Promise<{ id: string }
 
                             <button
                                 onClick={handleDownload}
-                                className="flex-1 flex items-center justify-center py-3 rounded-full bg-white/5 border border-white/10 text-white/70 hover:bg-white/10 transition-all duration-300"
+                                className="flex-1 flex items-center justify-center py-3 rounded-full bg-black border border-purple-500/50 text-white/70 hover:text-white hover:bg-black/80 transition-all duration-300 shadow-[0_0_15px_rgba(168,85,247,0.3)] hover:shadow-[0_0_25px_rgba(168,85,247,0.5)]"
                                 aria-label="Download track"
                             >
                                 <Download className="h-5 w-5" />
@@ -221,7 +226,7 @@ export default function RemixDetail({ params }: { params: Promise<{ id: string }
 
                             <button
                                 onClick={handleShare}
-                                className="flex-1 flex items-center justify-center py-3 rounded-full bg-white/5 border border-white/10 text-white/70 hover:bg-white/10 transition-all duration-300"
+                                className="flex-1 flex items-center justify-center py-3 rounded-full bg-black border border-purple-500/50 text-white/70 hover:text-white hover:bg-black/80 transition-all duration-300 shadow-[0_0_15px_rgba(168,85,247,0.3)] hover:shadow-[0_0_25px_rgba(168,85,247,0.5)]"
                                 aria-label="Share track"
                             >
                                 <Share2 className="h-5 w-5" />

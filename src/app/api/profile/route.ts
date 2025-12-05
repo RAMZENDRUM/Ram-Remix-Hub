@@ -39,15 +39,15 @@ export async function PATCH(req: Request) {
         const ageVal = age !== null && age !== undefined ? parseInt(String(age)) : null;
 
         await prisma.$executeRaw`
-            UPDATE User 
-            SET name = ${displayName}, 
-                age = ${ageVal}, 
-                country = ${country}, 
-                favoriteGenres = ${genresJson}, 
-                profileImageUrl = ${profileImageUrl}, 
-                image = ${profileImageUrl || null},
-                updatedAt = ${now}
-            WHERE id = ${session.user.id}
+            UPDATE "User" 
+            SET "name" = ${displayName}, 
+                "age" = ${ageVal}, 
+                "country" = ${country}, 
+                "favoriteGenres" = ${genresJson}, 
+                "profileImageUrl" = ${profileImageUrl}, 
+                "image" = ${profileImageUrl || null},
+                "updatedAt" = ${now}
+            WHERE "id" = ${session.user.id}
         `;
 
         // Fetch the updated user to return

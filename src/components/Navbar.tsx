@@ -11,11 +11,12 @@ import { LanguageSwitcher } from "./ui/language-switcher";
 import { useLanguage } from "@/context/LanguageContext";
 import { BrandLogo } from "@/components/BrandLogo";
 import { NeonAvatar } from "@/components/neon-avatar";
+import { useUser } from "@/context/UserContext";
+import { ShinyButton } from "@/components/ui/ShinyButton";
 
 const Navbar = () => {
     const pathname = usePathname();
-    const { data: session } = useSession();
-    const user = session?.user;
+    const { user } = useUser();
     const { t } = useLanguage();
 
     const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -73,6 +74,12 @@ const Navbar = () => {
                             >
                                 <Search size={20} />
                             </button>
+
+                            <Link href="/pricing" className="hidden sm:block">
+                                <ShinyButton className="text-xs px-6 py-2">
+                                    Upgrade
+                                </ShinyButton>
+                            </Link>
 
                             <LanguageSwitcher />
 

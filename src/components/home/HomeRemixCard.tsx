@@ -24,16 +24,37 @@ export function HomeRemixCard({ remix }: { remix: Remix }) {
       "
         >
             {/* cover */}
-            <div className="relative h-40 w-full overflow-hidden">
-                <img
-                    src={remix.coverUrl}
-                    alt={remix.title}
-                    className="
-            h-full w-full object-cover
-            transition-transform duration-500 ease-out
-            group-hover:scale-110
-          "
-                />
+            <div className="relative h-40 w-full overflow-hidden bg-neutral-900 flex items-center justify-center">
+                {remix.coverUrl ? (
+                    <img
+                        src={remix.coverUrl}
+                        alt={remix.title}
+                        className="
+                h-full w-full object-cover
+                transition-transform duration-500 ease-out
+                group-hover:scale-110
+              "
+                    />
+                ) : (
+                    <div className="flex items-center justify-center w-full h-full text-neutral-600">
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="24"
+                            height="24"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            className="w-10 h-10 opacity-50"
+                        >
+                            <path d="M9 18V5l12-2v13" />
+                            <circle cx="6" cy="18" r="3" />
+                            <circle cx="18" cy="16" r="3" />
+                        </svg>
+                    </div>
+                )}
                 {/* gradient overlay at bottom */}
                 <div className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
             </div>

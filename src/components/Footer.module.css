@@ -19,7 +19,7 @@
 }
 
 .section p,
-.section a {
+.section p a {
     color: var(--secondary);
     line-height: 1.6;
     font-size: 0.95rem;
@@ -28,7 +28,7 @@
     transition: color 0.2s ease;
 }
 
-.section a:hover {
+.section p a:hover {
     color: var(--primary);
 }
 

@@ -24,11 +24,40 @@ interface TrackRowProps {
     getAverageRating: (ratings: { rating: number }[]) => number;
     isPlaying: boolean;
     onPlay: () => void;
+    isLiked: boolean;
+    onLike: () => void;
 }
 
-const TrackRow = memo(({ track, index, getAverageRating, isPlaying, onPlay }: TrackRowProps) => {
+const TrackRow = memo(({ track, index, getAverageRating, isPlaying, onPlay, isLiked, onLike }: TrackRowProps) => {
     const avgRating = getAverageRating(track.ratings);
     const date = new Date(track.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+
+    // Helper to get dynamic neon colors based on genre
+    const getGenreColor = (genre: string) => {
+        const g = genre.toLowerCase();
+        if (g.includes('pop')) return "text-pink-400 border-pink-500/50 shadow-[0_0_12px_rgba(236,72,153,0.4)] bg-pink-900/20";
+        if (g.includes('hip-hop') || g.includes('rap')) return "text-orange-400 border-orange-500/50 shadow-[0_0_12px_rgba(249,115,22,0.4)] bg-orange-900/20";
+        if (g.includes('r&b')) return "text-rose-400 border-rose-500/50 shadow-[0_0_12px_rgba(244,63,94,0.4)] bg-rose-900/20";
+        if (g.includes('edm') || g.includes('house')) return "text-cyan-400 border-cyan-500/50 shadow-[0_0_12px_rgba(6,182,212,0.4)] bg-cyan-900/20";
+        if (g.includes('trap') || g.includes('phonk')) return "text-red-500 border-red-600/50 shadow-[0_0_12px_rgba(220,38,38,0.4)] bg-red-900/20";
+        if (g.includes('lo-fi') || g.includes('chill')) return "text-indigo-300 border-indigo-400/50 shadow-[0_0_12px_rgba(129,140,248,0.4)] bg-indigo-900/20";
+        if (g.includes('rock') || g.includes('metal')) return "text-stone-300 border-stone-400/50 shadow-[0_0_12px_rgba(168,162,158,0.4)] bg-stone-800/40";
+        if (g.includes('soundtrack') || g.includes('score')) return "text-amber-300 border-amber-400/50 shadow-[0_0_12px_rgba(251,191,36,0.4)] bg-amber-900/20";
+        if (g.includes('jazz') || g.includes('classical')) return "text-yellow-200 border-yellow-300/50 shadow-[0_0_12px_rgba(253,224,71,0.4)] bg-yellow-900/20";
+
+        // Default
+        return "text-cyan-300 border-cyan-500/50 shadow-[0_0_12px_rgba(6,182,212,0.4)] bg-cyan-900/20";
+    };
+
+    // Helper to get dynamic neon colors based on type
+    const getTypeColor = (type: string) => {
+        const t = type.toLowerCase();
+        if (t === 'remix') return "text-purple-400 drop-shadow-[0_0_8px_rgba(168,85,247,0.6)]";
+        if (t === 'instrumental') return "text-blue-400 drop-shadow-[0_0_8px_rgba(96,165,250,0.6)]";
+        if (t === 'bgm') return "text-emerald-400 drop-shadow-[0_0_8px_rgba(52,211,153,0.6)]";
+        if (t === 'song') return "text-fuchsia-400 drop-shadow-[0_0_8px_rgba(232,121,249,0.6)]";
+        return "text-purple-400 drop-shadow-[0_0_8px_rgba(168,85,247,0.6)]";
+    };
 
     return (
         <div className="group relative flex flex-col md:flex-row items-start md:items-center gap-4 p-4 md:px-5 md:py-3 bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 hover:translate-y-[-2px] hover:scale-[1.01] hover:shadow-[0_0_20px_rgba(140,92,255,0.35)] transition-all duration-300">
@@ -68,13 +97,18 @@ const TrackRow = memo(({ track, index, getAverageRating, isPlaying, onPlay }: Tr
 
                 {/* Title & Artist */}
                 <div className="flex flex-col min-w-0">
-                    <h3 className="text-white font-semibold text-base md:text-lg truncate pr-4 group-hover:text-purple-300 transition-colors">
+                    <h3
+                        className="text-white font-semibold text-base md:text-lg truncate pr-4 group-hover:text-purple-300 transition-colors tracking-wide"
+                        style={{ fontFamily: "var(--font-outfit), sans-serif" }}
+                    >
                         {track.title}
                     </h3>
                     <div className="flex items-center gap-2 text-xs md:text-sm text-white/60">
                         <span className="truncate">{track.artist || "Ram"}</span>
                         <span className="w-1 h-1 rounded-full bg-white/30" />
-                        <span className="uppercase tracking-wider opacity-80">{track.type || "Remix"}</span>
+                        <span className={cn("uppercase tracking-wider font-medium", getTypeColor(track.type || "Remix"))}>
+                            {track.type || "Remix"}
+                        </span>
                     </div>
                 </div>
             </div>
@@ -82,7 +116,7 @@ const TrackRow = memo(({ track, index, getAverageRating, isPlaying, onPlay }: Tr
             {/* Middle: Meta Info */}
             <div className="flex flex-wrap md:flex-nowrap items-center gap-x-6 gap-y-2 md:ml-auto md:mr-8 w-full md:w-auto pl-[72px] md:pl-0 relative z-10 pointer-events-none">
                 {track.genre && (
-                    <span className="bg-black/40 border border-white/10 rounded-full px-3 py-1 text-xs text-white/70 whitespace-nowrap">
+                    <span className={cn("rounded-full px-3 py-1 text-xs whitespace-nowrap backdrop-blur-md border", getGenreColor(track.genre))}>
                         {track.genre}
                     </span>
                 )}
@@ -113,14 +147,22 @@ const TrackRow = memo(({ track, index, getAverageRating, isPlaying, onPlay }: Tr
                     isPlaying={isPlaying}
                     onClick={onPlay}
                     label="Play"
-                    className="w-auto h-9 px-4 py-1.5 text-xs md:text-sm"
+                    className="w-auto h-9 px-4 py-1.5 text-xs md:text-sm border-purple-500/50 shadow-[0_0_15px_rgba(168,85,247,0.5)] bg-black hover:bg-purple-500/20"
                 />
 
                 <button
-                    className="hidden md:flex w-9 h-9 rounded-full bg-black/40 items-center justify-center text-white/70 hover:bg-white/10 hover:text-white transition-colors"
-                    aria-label="Add to Favorites"
+                    onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        onLike();
+                    }}
+                    className={cn(
+                        "hidden md:flex w-9 h-9 rounded-full items-center justify-center transition-colors",
+                        isLiked ? "bg-purple-500/20 text-purple-400" : "bg-black/40 text-white/70 hover:bg-white/10 hover:text-white"
+                    )}
+                    aria-label={isLiked ? "Remove from Favorites" : "Add to Favorites"}
                 >
-                    <Heart size={16} />
+                    <Heart size={16} fill={isLiked ? "currentColor" : "none"} />
                 </button>
 
                 <button

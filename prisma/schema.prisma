@@ -18,6 +18,7 @@ model User {
   accounts      Account[]
   sessions      Session[]
   likes         Like[]
+  playHistory   UserTrackStat[]
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   role          String    @default("LISTENER")
@@ -77,6 +78,7 @@ model Track {
   updatedAt      DateTime @updatedAt
   ratings        Rating[]
   likes          Like[]
+  userStats      UserTrackStat[]
 }
 
 model Rating {
@@ -96,6 +98,20 @@ model Like {
   userId    String
   createdAt DateTime @default(now())
 
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  track Track @relation(fields: [trackId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, trackId])
+}
+
+model UserTrackStat {
+  id              String   @id @default(cuid())
+  userId          String
+  trackId         String
+  playCount       Int      @default(0)
+  totalPlayTimeMs Int      @default(0)
+  lastPlayedAt    DateTime @default(now())
+  
   user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
   track Track @relation(fields: [trackId], references: [id], onDelete: Cascade)
 

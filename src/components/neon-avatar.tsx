@@ -64,9 +64,7 @@ export function NeonAvatar({
                     "border border-white/15 bg-transparent overflow-hidden"
                 )}
             >
-                {imageUrl ? (
-                    <AvatarImage src={imageUrl} alt={name || "Profile picture"} />
-                ) : null}
+                <AvatarImage src={imageUrl || undefined} alt={name || "Profile picture"} />
                 <AvatarFallback
                     className={clsx(
                         "w-full h-full flex items-center justify-center rounded-full",

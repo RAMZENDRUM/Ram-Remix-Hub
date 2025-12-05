@@ -239,3 +239,100 @@
 .pulse-soft {
   animation: pulse-soft 3.2s ease-in-out infinite;
 }
+
+/* Thunder Effect Styles */
+/* full-screen white flash */
+.thunder-flash {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 50% 40%, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.2), transparent 70%);
+  animation: thunder-flash 0.18s ease-out forwards;
+  mix-blend-mode: screen;
+}
+
+/* container that positions the bolt at the click X */
+.thunder-bolt-container {
+  position: absolute;
+  transform: translateX(-50%);
+  width: 120px;
+  /* Ensure container has width */
+}
+
+/* the actual bolt */
+.thunder-bolt {
+  filter:
+    drop-shadow(0 0 12px rgba(255, 255, 255, 0.9)) drop-shadow(0 0 24px rgba(147, 197, 253, 0.9));
+  animation: thunder-bolt-flicker 0.28s ease-out forwards;
+  width: 100%;
+  height: 100%;
+}
+
+/* animations */
+@keyframes thunder-flash {
+  0% {
+    opacity: 0;
+  }
+
+  20% {
+    opacity: 1;
+  }
+
+  60% {
+    opacity: 0.5;
+  }
+
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes thunder-bolt-flicker {
+  0% {
+    opacity: 0;
+    transform: scale(1.05);
+  }
+
+  10% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  40% {
+    opacity: 0.7;
+  }
+
+  60% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+}
+
+@keyframes shake {
+  0% {
+    transform: translate(0px, 0px);
+  }
+
+  20% {
+    transform: translate(-12px, 4px);
+  }
+
+  40% {
+    transform: translate(10px, -6px);
+  }
+
+  60% {
+    transform: translate(-8px, 3px);
+  }
+
+  80% {
+    transform: translate(6px, -5px);
+  }
+
+  100% {
+    transform: translate(0px, 0px);
+  }
+}

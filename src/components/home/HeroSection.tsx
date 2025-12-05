@@ -24,7 +24,7 @@ export function HeroSection({ user, currentTrack, duration, currentTime }: HeroS
     const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
 
     return (
-        <section className="relative grid gap-12 lg:grid-cols-[1.2fr_1fr] items-center py-20">
+        <section className="relative grid gap-12 lg:grid-cols-[1.2fr_1fr] items-center py-12 lg:py-20">
             {/* Left: Content aligns left */}
             <div className="space-y-8 text-left animate-fadeIn">
 
@@ -49,7 +49,7 @@ export function HeroSection({ user, currentTrack, duration, currentTime }: HeroS
                 </div>
 
                 {/* Main Headline with Purple Shade Gradient */}
-                <h1 className="text-6xl sm:text-7xl lg:text-9xl font-bold tracking-tighter leading-[0.9] drop-shadow-2xl">
+                <h1 className="text-4xl sm:text-7xl lg:text-9xl font-bold tracking-tighter leading-[0.9] drop-shadow-2xl">
                     <span className="bg-clip-text text-transparent bg-gradient-to-r from-white via-purple-100 to-purple-400">
                         Remixes. Refined.
                     </span>

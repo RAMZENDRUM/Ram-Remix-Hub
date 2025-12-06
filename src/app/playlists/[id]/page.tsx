@@ -121,6 +121,7 @@ export default function PlaylistDetailPage() {
     };
 
     const handlePlayTrack = (track: Track, index: number) => {
+        if (!playlist) return;
         if (currentTrack?.id === track.id) {
             togglePlay();
         } else {

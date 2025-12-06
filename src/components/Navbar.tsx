@@ -64,7 +64,7 @@ const Navbar = () => {
                         <div className="flex items-center gap-4">
                             {/* Search Component */}
                             <div className="hidden md:block">
-                                <SearchComponent />
+                                <SearchComponent onClick={() => setIsSearchOpen(true)} />
                             </div>
 
                             {/* Mobile Search Trigger */}

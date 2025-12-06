@@ -13,6 +13,7 @@ export default function LoginCard() {
     const router = useRouter();
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [rememberMe, setRememberMe] = useState(false);
     const [error, setError] = useState("");
 
     const searchParams = useSearchParams();
@@ -29,9 +30,13 @@ export default function LoginCard() {
         e.preventDefault();
         setError("");
 
+        // Note: NextAuth credentials caching is typically server-side, 
+        // passing rememberMe requires custom backend handling or will be ignored by default provider.
+        // We pass it in case the backend is configured to read it.
         const res = await signIn("credentials", {
             email,
             password,
+            rememberMe: rememberMe ? "true" : "false",
             redirect: false,
         });
 
@@ -84,7 +89,22 @@ export default function LoginCard() {
                         className="bg-black/50 border-neutral-800 text-white placeholder:text-neutral-500 focus-visible:ring-neutral-700 h-11"
                         autoComplete="current-password"
                     />
-                    <div className="flex justify-end">
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-2">
+                            <input
+                                type="checkbox"
+                                id="remember_me"
+                                className="rounded border-neutral-700 bg-neutral-800 text-white accent-white"
+                                checked={rememberMe}
+                                onChange={(e) => setRememberMe(e.target.checked)}
+                            />
+                            <label
+                                htmlFor="remember_me"
+                                className="text-sm font-medium leading-none text-neutral-400 cursor-pointer select-none"
+                            >
+                                Remember me
+                            </label>
+                        </div>
                         <Link href="/forgot-password" className="text-sm text-neutral-400 hover:text-white hover:underline">
                             Forgot password?
                         </Link>

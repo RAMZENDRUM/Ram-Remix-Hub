@@ -153,7 +153,7 @@ export default function GlobalPlayer() {
                         initial={{ opacity: 0, y: 20, scale: 0.95 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 20, scale: 0.95 }}
-                        className="fixed bottom-28 right-4 z-50 w-80 max-h-[60vh] overflow-hidden rounded-3xl bg-[#0f1115]/95 backdrop-blur-xl border border-white/10 shadow-2xl shadow-black/80 flex flex-col"
+                        className="fixed bottom-28 right-4 z-[5001] w-80 max-h-[60vh] overflow-hidden rounded-3xl bg-[#0f1115]/95 backdrop-blur-xl border border-white/10 shadow-2xl shadow-black/80 flex flex-col"
                     >
                         <div className="p-4 border-b border-white/5 flex items-center justify-between">
                             <h3 className="text-sm font-bold text-white uppercase tracking-wider">Play Queue</h3>
@@ -208,7 +208,7 @@ export default function GlobalPlayer() {
                         initial={{ opacity: 0, y: 20, scale: 0.95 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 20, scale: 0.95 }}
-                        className="fixed bottom-28 left-4 md:left-10 z-50 max-w-sm rounded-2xl border border-purple-500/30 bg-[#0f1115]/95 backdrop-blur-xl px-6 py-5 shadow-[0_0_30px_rgba(139,92,246,0.3)]"
+                        className="fixed bottom-28 left-4 md:left-10 z-[5001] max-w-sm rounded-2xl border border-purple-500/30 bg-[#0f1115]/95 backdrop-blur-xl px-6 py-5 shadow-[0_0_30px_rgba(139,92,246,0.3)]"
                     >
                         <div className="flex items-center justify-between mb-2">
                             <p className="text-xs uppercase tracking-[0.18em] text-violet-300">
@@ -237,7 +237,7 @@ export default function GlobalPlayer() {
             <motion.div
                 initial={{ y: 100 }}
                 animate={{ y: 0 }}
-                className="fixed bottom-0 left-0 right-0 z-40 px-2 pb-2 sm:px-4 sm:pb-4 pointer-events-none"
+                className="fixed bottom-0 left-0 right-0 z-[5000] px-2 pb-2 sm:px-4 sm:pb-4 pointer-events-none"
             >
                 <div className="pointer-events-auto mx-auto max-w-5xl relative">
 

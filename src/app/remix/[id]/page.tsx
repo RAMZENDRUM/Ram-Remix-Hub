@@ -1,14 +1,19 @@
 'use client';
 
 import React, { useEffect, useState, use } from 'react';
-import { Play, Download, Heart, Star, Share2, MessageSquare } from 'lucide-react';
+import { Play, Download, Heart, Star, Share2, MessageSquare, Plus, ListPlus, Check } from 'lucide-react';
 import uiText from '@/data/ui-text.json';
 import { usePlayer } from '@/context/PlayerContext';
 import { RatingModal } from '@/components/ui/RatingModal';
+import CreatePlaylistModal from '@/components/ui/CreatePlaylistModal';
 import { useToast } from '@/context/ToastContext';
 import { cn } from '@/lib/utils';
 import { useSyncRouteWithPlayer } from '@/hooks/useSyncRouteWithPlayer';
 import { PlayButton } from "@/components/ui/PlayButton";
+import Link from 'next/link';
+import Image from 'next/image';
+import DownloadModal from '@/components/ui/DownloadModal';
+import ShareModal from '@/components/ui/ShareModal';
 
 interface Track {
     id: string;
@@ -31,6 +36,11 @@ interface Review {
     userId: string | null;
 }
 
+interface Playlist {
+    id: string;
+    name: string;
+}
+
 export default function RemixDetail({ params }: { params: Promise<{ id: string }> }) {
     const { id } = use(params);
     const { remixDetail } = uiText;
@@ -39,6 +49,10 @@ export default function RemixDetail({ params }: { params: Promise<{ id: string }
     const [relatedTracks, setRelatedTracks] = useState<Track[]>([]);
     const [loading, setLoading] = useState(true);
 
+    const [userPlaylists, setUserPlaylists] = useState<Playlist[]>([]);
+    const [showAddMenu, setShowAddMenu] = useState(false);
+    const { showToast } = useToast();
+
     // Sync route with player
     useSyncRouteWithPlayer();
 
@@ -46,6 +60,17 @@ export default function RemixDetail({ params }: { params: Promise<{ id: string }
     const [ratingStats, setRatingStats] = useState({ average: 0, count: 0 });
     const [reviews, setReviews] = useState<Review[]>([]);
     const [isRatingModalOpen, setIsRatingModalOpen] = useState(false);
+
+    // Create Playlist Modal State
+    const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+
+    // Download Modal State
+    const [showDownloadModal, setShowDownloadModal] = useState(false);
+    const [downloadProgress, setDownloadProgress] = useState(0);
+    const [downloadStatus, setDownloadStatus] = useState<"preparing" | "downloading" | "done" | "error">("preparing");
+
+    // Share Modal State
+    const [showShareModal, setShowShareModal] = useState(false);
 
     // Derived liked state
     const isLiked = track ? likedIds.has(track.id) : false;
@@ -93,16 +118,68 @@ export default function RemixDetail({ params }: { params: Promise<{ id: string }
         }
     };
 
+    const fetchUserPlaylists = async () => {
+        try {
+            const res = await fetch('/api/playlists');
+            if (res.ok) {
+                const data = await res.json();
+                setUserPlaylists(data.user || []);
+            }
+        } catch (err) {
+            console.error("Failed to fetch playlists", err);
+        }
+    };
+
     useEffect(() => {
         fetchTrackAndRatings();
+        fetchUserPlaylists();
     }, [id]);
 
-    const { showToast } = useToast();
+    const handleShare = async () => {
+        setShowShareModal(true);
+    };
 
-    const handleShare = () => {
-        const url = window.location.href;
-        navigator.clipboard.writeText(url);
-        showToast({ variant: "success", message: "Link copied to clipboard" });
+    const handleAddToPlaylist = async (playlistId: string) => {
+        if (!track) return;
+        try {
+            const res = await fetch(`/api/playlists/${playlistId}/tracks`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ trackId: track.id })
+            });
+            if (res.ok) {
+                showToast({ variant: "success", message: "Added to playlist" });
+                setShowAddMenu(false);
+            } else {
+                showToast({ variant: "error", message: "Failed to add to playlist" });
+            }
+        } catch (err) {
+            console.error(err);
+            showToast({ variant: "error", message: "Error adding to playlist" });
+        }
+    };
+
+    const handleCreatePlaylist = async (name: string) => {
+        if (!track) return;
+
+        try {
+            // 1. Create Playlist
+            const createRes = await fetch('/api/playlists', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name })
+            });
+
+            if (createRes.ok) {
+                const newPlaylist = await createRes.json();
+                // 2. Add current track
+                await handleAddToPlaylist(newPlaylist.id);
+                // 3. Refresh list
+                fetchUserPlaylists();
+            }
+        } catch (err) {
+            console.error("Failed to create playlist", err);
+        }
     };
 
     const handleLike = async () => {
@@ -120,15 +197,18 @@ export default function RemixDetail({ params }: { params: Promise<{ id: string }
 
             if (res.ok) {
                 const data = await res.json();
-                // Ensure context matches server state (should already match due to optimistic update)
-                const currentlyLiked = likedIds.has(track.id);
-                // If the server state (data.liked) matches the INITIAL state (currentlyLiked),
-                // it means the action effectively failed/did nothing, so we should revert our optimistic toggle.
-                // Or simplified: We want state to trigger toggle only if it doesn't match our 'new' state (!currentlyLiked).
-                // Since we want final state == data.liked, and current state == !currentlyLiked:
-                // If data.liked == currentlyLiked, we must toggle to get back to proper state.
-                if (data.liked === currentlyLiked) {
-                    toggleLike(track.id);
+                if (data.liked === isLiked) {
+                    // If server state matches current local state (before optimistic toggle), 
+                    // it means toggle failed or state was desynced. 
+                    // But here we want to ensure context matches server data.liked.
+                    // The context toggleLike simply flips the boolean.
+                    // If currentlyLiked (state before toggle) == data.liked, then we need to flip it back.
+                    // Actually, simplified: force the state to match data.liked.
+                    // But context doesn't have setLike(bool). It has toggleLike().
+                    // If likedIds.has(track.id) !== data.liked, we toggle.
+                    if (likedIds.has(track.id) !== data.liked) {
+                        toggleLike(track.id);
+                    }
                 }
                 showToast({ variant: "success", message: data.liked ? "Added to Favorites" : "Removed from Favorites" });
             } else {
@@ -147,15 +227,64 @@ export default function RemixDetail({ params }: { params: Promise<{ id: string }
         }
     };
 
-    const handleDownload = () => {
-        if (track?.audioUrl) {
+    const handleDownload = async () => {
+        if (!track?.audioUrl) return;
+
+        setShowDownloadModal(true);
+        setDownloadStatus("preparing");
+        setDownloadProgress(0);
+
+        try {
+            const res = await fetch(track.audioUrl);
+            if (!res.ok) throw new Error("Download failed");
+
+            const contentLength = res.headers.get("Content-Length");
+            const total = contentLength ? parseInt(contentLength, 10) : null;
+
+            setDownloadStatus("downloading");
+
+            const reader = res.body?.getReader();
+            if (!reader) throw new Error("ReadableStream not supported");
+
+            let received = 0;
+            const chunks = [];
+
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+                chunks.push(value);
+                received += value.length;
+
+                if (total) {
+                    setDownloadProgress(Math.round((received / total) * 100));
+                } else {
+                    // Fake progress if total not known
+                    setDownloadProgress((prev) => (prev < 90 ? prev + 5 : prev));
+                }
+            }
+
+            const blob = new Blob(chunks);
+            const url = window.URL.createObjectURL(blob);
+
             const link = document.createElement('a');
-            link.href = track.audioUrl;
+            link.href = url;
             link.download = `${track.title}.mp3`;
             document.body.appendChild(link);
             link.click();
-            document.body.removeChild(link);
-            showToast({ variant: "success", message: "Download started" });
+            link.remove();
+            window.URL.revokeObjectURL(url);
+
+            setDownloadProgress(100);
+            setDownloadStatus("done");
+
+            setTimeout(() => {
+                setShowDownloadModal(false);
+            }, 1000);
+
+        } catch (error) {
+            console.error("Download failed", error);
+            setDownloadStatus("error");
+            // Keep modal open on error so user sees it
         }
     };
 
@@ -212,9 +341,53 @@ export default function RemixDetail({ params }: { params: Promise<{ id: string }
                                 variant="pill"
                                 isPlaying={isCurrentTrackPlaying}
                                 onClick={handlePlay}
-                                label={isCurrentTrackPlaying ? "Pause" : "Play Now"}
+                                label={isCurrentTrackPlaying ? "Pause" : "Play"}
                                 className="flex-[2]"
                             />
+
+                            {/* Add to Playlist Dropdown */}
+                            <div className="relative flex-1">
+                                <button
+                                    onClick={() => setShowAddMenu(!showAddMenu)}
+                                    className="w-full flex items-center justify-center py-3 rounded-full bg-black border border-purple-500/50 text-white/70 hover:text-white hover:bg-black/80 transition-all duration-300 shadow-[0_0_15px_rgba(168,85,247,0.3)] hover:shadow-[0_0_25px_rgba(168,85,247,0.5)]"
+                                    aria-label="Add to playlist"
+                                >
+                                    <ListPlus className="h-5 w-5" />
+                                </button>
+
+                                {showAddMenu && (
+                                    <div className="absolute top-14 left-0 w-64 p-2 rounded-2xl bg-neutral-900 border border-white/10 shadow-2xl z-50 animate-in fade-in zoom-in-95 duration-200">
+                                        <div className="text-xs font-medium text-neutral-400 px-3 py-2 uppercase tracking-wider">
+                                            Add to Playlist
+                                        </div>
+                                        <div className="max-h-60 overflow-y-auto space-y-1">
+                                            {userPlaylists.length === 0 && (
+                                                <div className="text-sm text-neutral-500 px-3 py-2 italic text-center">
+                                                    No playlists yet
+                                                </div>
+                                            )}
+                                            {userPlaylists.map(pl => (
+                                                <button
+                                                    key={pl.id}
+                                                    onClick={() => handleAddToPlaylist(pl.id)}
+                                                    className="w-full text-left px-3 py-2.5 text-sm text-white hover:bg-white/10 rounded-xl transition-colors flex items-center gap-2 group"
+                                                >
+                                                    <ListPlus size={14} className="text-neutral-500 group-hover:text-purple-400" />
+                                                    <span className="truncate">{pl.name}</span>
+                                                </button>
+                                            ))}
+                                            <div className="h-px bg-white/10 my-1.5" />
+                                            <button
+                                                onClick={() => setIsCreateModalOpen(true)}
+                                                className="w-full text-left px-3 py-2.5 text-sm text-purple-400 hover:bg-purple-500/10 rounded-xl transition-colors flex items-center gap-2 font-medium"
+                                            >
+                                                <Plus size={14} />
+                                                New Playlist
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
 
                             <button
                                 onClick={handleDownload}
@@ -410,6 +583,29 @@ export default function RemixDetail({ params }: { params: Promise<{ id: string }
                 trackId={track.id}
                 onRatingSubmit={fetchTrackAndRatings}
             />
+
+            {isCreateModalOpen && (
+                <CreatePlaylistModal
+                    onClose={() => setIsCreateModalOpen(false)}
+                    onCreate={handleCreatePlaylist}
+                />
+            )}
+
+            {showDownloadModal && (
+                <DownloadModal
+                    progress={downloadProgress}
+                    status={downloadStatus}
+                    onClose={() => setShowDownloadModal(false)}
+                />
+            )}
+
+            {showShareModal && track && (
+                <ShareModal
+                    url={window.location.href}
+                    title={track.title}
+                    onClose={() => setShowShareModal(false)}
+                />
+            )}
         </div>
     );
 }

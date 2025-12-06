@@ -1,11 +1,15 @@
 import React from "react";
 import { Search } from "lucide-react";
 
-const SearchComponent = () => {
+interface SearchComponentProps {
+    onClick?: () => void;
+}
+
+const SearchComponent = ({ onClick }: SearchComponentProps) => {
     return (
         <div className="relative flex items-center justify-center">
             <div className="absolute z-[-1] w-full h-min-screen" />
-            <div id="poda" className="relative flex items-center justify-center group">
+            <div id="poda" className="relative flex items-center justify-center group" onClick={onClick}>
                 {/* Outer neon layers - Reduced size and fully rounded */}
                 <div className="absolute z-[-1] overflow-hidden h-full w-full max-h-[50px] max-w-[260px] rounded-full blur-[3px]
                         before:absolute before:content-[''] before:z-[-2] before:w-full before:h-full before:bg-no-repeat
@@ -20,7 +24,9 @@ const SearchComponent = () => {
                         placeholder="Search..."
                         type="text"
                         name="text"
-                        className="bg-[#010201] border-none w-[200px] md:w-[250px] h-[42px] rounded-full text-white pl-[45px] pr-6 text-sm focus:outline-none placeholder-gray-400"
+                        readOnly
+                        onClick={onClick}
+                        className="bg-[#010201] border-none w-[200px] md:w-[250px] h-[42px] rounded-full text-white pl-[45px] pr-6 text-sm focus:outline-none placeholder-gray-400 cursor-pointer"
                     />
 
                     {/* Search Icon Container */}

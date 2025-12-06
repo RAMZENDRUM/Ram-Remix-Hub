@@ -26,6 +26,7 @@ model User {
   country         String?
   favoriteGenres  String? // Stored as JSON string
   profileImageUrl String?
+  playlists       Playlist[]
 }
 
 model Account {
@@ -79,6 +80,7 @@ model Track {
   ratings        Rating[]
   likes          Like[]
   userStats      UserTrackStat[]
+  playlists      Playlist[]
 }
 
 model Rating {
@@ -116,4 +118,17 @@ model UserTrackStat {
   track Track @relation(fields: [trackId], references: [id], onDelete: Cascade)
 
   @@unique([userId, trackId])
+}
+
+model Playlist {
+  id        String   @id @default(cuid())
+  name      String
+  coverUrl  String?
+  ownerId   String
+  isCurated Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  owner  User    @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  tracks Track[]
 }

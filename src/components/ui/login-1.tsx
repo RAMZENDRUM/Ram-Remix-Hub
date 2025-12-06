@@ -36,10 +36,11 @@ const Login1 = ({
     const { login } = useAuth();
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [rememberMe, setRememberMe] = useState(false);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        login(email);
+        login(email, rememberMe);
     };
 
     return (
@@ -79,6 +80,22 @@ const Login1 = ({
                             onChange={(e) => setPassword(e.target.value)}
                             className="bg-black/50 border-neutral-800 text-white placeholder:text-neutral-500 focus-visible:ring-neutral-700 h-11"
                         />
+                    </div>
+
+                    <div className="flex items-center space-x-2">
+                        <input
+                            type="checkbox"
+                            id="remember"
+                            className="rounded border-neutral-700 bg-neutral-800 text-white"
+                            checked={rememberMe}
+                            onChange={(e) => setRememberMe(e.target.checked)}
+                        />
+                        <label
+                            htmlFor="remember"
+                            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-neutral-400"
+                        >
+                            Remember me
+                        </label>
                     </div>
 
                     <Button type="submit" className="w-full bg-white text-black hover:bg-neutral-200 mt-2 h-11 font-semibold">

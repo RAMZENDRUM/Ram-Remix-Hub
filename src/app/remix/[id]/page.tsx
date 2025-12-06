@@ -240,22 +240,59 @@ export default function RemixDetail({ params }: { params: Promise<{ id: string }
                         {/* Title & Artist */}
                         <div className="space-y-2">
                             <div className="flex items-center gap-3">
-                                <span className="px-3 py-1 rounded-full bg-purple-500/20 border border-purple-500/30 text-purple-300 text-xs font-bold uppercase tracking-wider">
-                                    {track.type || 'Remix'}
-                                </span>
-                                {track.genre && (
-                                    <span className="px-3 py-1 rounded-full bg-white/5 border border-white/10 text-white/60 text-xs font-medium uppercase tracking-wider">
-                                        {track.genre}
-                                    </span>
-                                )}
+                                {(() => {
+                                    // Helper to get dynamic neon colors based on type
+                                    const getTypeColor = (type: string) => {
+                                        const t = type.toLowerCase();
+                                        if (t === 'remix') return "text-purple-400 border-purple-500/50 shadow-[0_0_12px_rgba(168,85,247,0.4)] bg-purple-900/20";
+                                        if (t === 'instrumental') return "text-blue-400 border-blue-500/50 shadow-[0_0_12px_rgba(96,165,250,0.4)] bg-blue-900/20";
+                                        if (t === 'bgm') return "text-emerald-400 border-emerald-500/50 shadow-[0_0_12px_rgba(52,211,153,0.4)] bg-emerald-900/20";
+                                        if (t === 'song') return "text-fuchsia-400 border-fuchsia-500/50 shadow-[0_0_12px_rgba(232,121,249,0.4)] bg-fuchsia-900/20";
+                                        return "text-purple-400 border-purple-500/50 shadow-[0_0_12px_rgba(168,85,247,0.4)] bg-purple-900/20";
+                                    };
+
+                                    // Helper to get dynamic neon colors based on genre
+                                    const getGenreColor = (genre: string) => {
+                                        const g = genre.toLowerCase();
+                                        if (g.includes('pop')) return "text-pink-400 border-pink-500/50 shadow-[0_0_12px_rgba(236,72,153,0.4)] bg-pink-900/20";
+                                        if (g.includes('hip-hop') || g.includes('rap')) return "text-orange-400 border-orange-500/50 shadow-[0_0_12px_rgba(249,115,22,0.4)] bg-orange-900/20";
+                                        if (g.includes('r&b')) return "text-rose-400 border-rose-500/50 shadow-[0_0_12px_rgba(244,63,94,0.4)] bg-rose-900/20";
+                                        if (g.includes('edm') || g.includes('house')) return "text-cyan-400 border-cyan-500/50 shadow-[0_0_12px_rgba(6,182,212,0.4)] bg-cyan-900/20";
+                                        if (g.includes('trap') || g.includes('phonk')) return "text-red-500 border-red-600/50 shadow-[0_0_12px_rgba(220,38,38,0.4)] bg-red-900/20";
+                                        if (g.includes('lo-fi') || g.includes('chill')) return "text-indigo-300 border-indigo-400/50 shadow-[0_0_12px_rgba(129,140,248,0.4)] bg-indigo-900/20";
+                                        if (g.includes('rock') || g.includes('metal')) return "text-stone-300 border-stone-400/50 shadow-[0_0_12px_rgba(168,162,158,0.4)] bg-stone-800/40";
+                                        if (g.includes('soundtrack') || g.includes('score')) return "text-amber-300 border-amber-400/50 shadow-[0_0_12px_rgba(251,191,36,0.4)] bg-amber-900/20";
+                                        if (g.includes('jazz') || g.includes('classical')) return "text-yellow-200 border-yellow-300/50 shadow-[0_0_12px_rgba(253,224,71,0.4)] bg-yellow-900/20";
+
+                                        // Default
+                                        return "text-cyan-300 border-cyan-500/50 shadow-[0_0_12px_rgba(6,182,212,0.4)] bg-cyan-900/20";
+                                    };
+
+                                    return (
+                                        <>
+                                            <span className={cn("px-3 py-1 rounded-full border text-xs font-bold uppercase tracking-wider backdrop-blur-md", getTypeColor(track.type || 'Remix'))}>
+                                                {track.type || 'Remix'}
+                                            </span>
+                                            {track.genre && (
+                                                <span className={cn("px-3 py-1 rounded-full border text-xs font-medium uppercase tracking-wider backdrop-blur-md", getGenreColor(track.genre))}>
+                                                    {track.genre}
+                                                </span>
+                                            )}
+                                        </>
+                                    );
+                                })()}
                             </div>
 
                             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-white via-white to-purple-300 leading-normal pb-2">
                                 {track.title}
                             </h1>
 
-                            <p className="text-xl text-white/60 font-medium flex items-center gap-2">
-                                By <span className="text-white hover:text-purple-400 transition-colors cursor-pointer">{track.artist || 'Ram'}</span>
+                            <p className="text-xl text-white/60 font-medium flex items-baseline gap-2">
+                                By <span
+                                    className="font-[family-name:var(--font-zen-dots)] text-xl uppercase bg-gradient-to-r from-white via-purple-100 to-purple-400 bg-clip-text text-transparent transition-all cursor-pointer hover:opacity-80"
+                                >
+                                    {track.artist || 'Ram'}
+                                </span>
                             </p>
                         </div>
 

@@ -15,10 +15,11 @@ export const metadata: Metadata = {
 
 import AnoAI from "@/components/AnoAI";
 
-import { Inter, Outfit } from "next/font/google";
+import { Inter, Outfit, Zen_Dots } from "next/font/google";
 
 const inter = Inter({ subsets: ["latin"] });
 const outfit = Outfit({ subsets: ["latin"], variable: "--font-outfit" });
+const zenDots = Zen_Dots({ weight: "400", subsets: ["latin"], variable: "--font-zen-dots" });
 
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
@@ -39,7 +40,7 @@ export default async function RootLayout({
 
   return (
     <html lang="en" className="dark" suppressHydrationWarning>
-      <body className={`${inter.className} ${outfit.variable} bg-black text-white relative`}>
+      <body className={`${inter.className} ${outfit.variable} ${zenDots.variable} bg-black text-white relative`}>
         <RainBackground
           intensity={100}
           speed={0.2}

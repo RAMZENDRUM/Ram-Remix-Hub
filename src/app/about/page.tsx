@@ -27,7 +27,7 @@ export default function AboutPage() {
     return (
         <div className="min-h-screen bg-black text-white pb-20">
             {/* Hero Section */}
-            <section className="relative h-[40vh] flex items-center justify-center overflow-hidden">
+            <section className="relative h-[55vh] flex items-center justify-center overflow-hidden pt-10">
                 <div className="absolute inset-0 bg-gradient-to-b from-purple-900/20 via-black/50 to-black z-0" />
                 <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1511379938547-c1f69419868d?q=80&w=2070&auto=format&fit=crop')] bg-cover bg-center opacity-20 z-[-1]" />
 
@@ -42,7 +42,7 @@ export default function AboutPage() {
             </section>
 
             {/* Profile Section */}
-            <section className="container mx-auto px-4 -mt-24 relative z-20">
+            <section className="container mx-auto px-4 -mt-12 relative z-20">
                 <div className="max-w-5xl mx-auto bg-neutral-900/60 backdrop-blur-2xl border border-white/10 rounded-[2.5rem] p-8 md:p-16 shadow-2xl shadow-purple-900/20">
                     <div className="flex flex-col md:flex-row gap-12 items-center md:items-start">
 

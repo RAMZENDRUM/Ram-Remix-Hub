@@ -75,6 +75,15 @@ const Navbar = () => {
                                 <Search size={20} />
                             </button>
 
+                            {!user && (
+                                <Link
+                                    href="/about"
+                                    className="text-sm font-medium text-neutral-400 hover:text-white transition-colors hidden sm:block"
+                                >
+                                    About Me
+                                </Link>
+                            )}
+
                             <Link href="/pricing">
                                 <ShinyButton className="text-[10px] px-3 py-1.5 sm:text-xs sm:px-6 sm:py-2">
                                     Upgrade

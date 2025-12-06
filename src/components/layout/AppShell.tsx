@@ -13,7 +13,9 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     // Hide navbar/footer on /auth, and on / (home) if not authenticated
     const isAuthPage = pathname === "/auth";
     const isLandingPage = pathname === "/" && status === "unauthenticated";
-    const isPublic = isAuthPage || isLandingPage;
+    const isAboutPage = pathname === "/about" && status === "unauthenticated";
+    const isAboutWebsitePage = pathname === "/about-website" && status === "unauthenticated";
+    const isPublic = isAuthPage || isLandingPage || isAboutPage || isAboutWebsitePage;
 
     if (isPublic) {
         return <>{children}</>;

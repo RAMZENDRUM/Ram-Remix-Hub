@@ -103,8 +103,10 @@ const ShaderBackground = () => {
             time *= 0.001; // convert to seconds
 
             if (canvas.width !== canvas.clientWidth || canvas.height !== canvas.clientHeight) {
-                canvas.width = canvas.clientWidth;
-                canvas.height = canvas.clientHeight;
+                // Force lower resolution on high DPI screens for performance
+                const dpr = Math.min(window.devicePixelRatio, 1.5);
+                canvas.width = canvas.clientWidth * dpr;
+                canvas.height = canvas.clientHeight * dpr;
                 gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
             }
 

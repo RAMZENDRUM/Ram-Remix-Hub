@@ -13,7 +13,7 @@ interface Track {
     artist: string | null;
     genre: string | null;
     coverImageUrl: string | null;
-    createdAt: Date;
+    createdAt: string;
     ratings: { rating: number }[];
     type?: string; // Added type property
 }

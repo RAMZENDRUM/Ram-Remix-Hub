@@ -15,7 +15,7 @@ interface Track {
     artist?: string | null;
     coverImageUrl?: string | null;
     isUnlisted: boolean;
-    createdAt: Date;
+    createdAt: string;
 }
 
 interface HomeClientProps {

@@ -26,6 +26,12 @@ export default async function ProfilePage() {
 
     // Parse favoriteGenres if it's a string (JSON)
     let parsedUser = { ...user } as any;
+
+    // Manual date serialization to prevent Server Client serialization errors
+    if (parsedUser.createdAt) parsedUser.createdAt = parsedUser.createdAt.toISOString();
+    if (parsedUser.updatedAt) parsedUser.updatedAt = parsedUser.updatedAt.toISOString();
+    if (parsedUser.emailVerified) parsedUser.emailVerified = parsedUser.emailVerified.toISOString();
+
     if (typeof user.favoriteGenres === 'string') {
         try {
             parsedUser.favoriteGenres = JSON.parse(user.favoriteGenres);

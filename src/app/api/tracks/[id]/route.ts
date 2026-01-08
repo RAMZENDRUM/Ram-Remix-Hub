@@ -15,7 +15,11 @@ export async function GET(
             return NextResponse.json({ error: "Track not found" }, { status: 404 });
         }
 
-        return NextResponse.json(track);
+        return NextResponse.json({
+            ...track,
+            createdAt: track.createdAt.toISOString(),
+            updatedAt: track.updatedAt.toISOString(),
+        });
     } catch (error) {
         console.error("Error fetching track:", error);
         return NextResponse.json({ error: "Internal server error" }, { status: 500 });

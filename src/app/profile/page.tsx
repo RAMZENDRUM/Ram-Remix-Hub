@@ -32,6 +32,25 @@ export default async function ProfilePage() {
     if (parsedUser.updatedAt) parsedUser.updatedAt = parsedUser.updatedAt.toISOString();
     if (parsedUser.emailVerified) parsedUser.emailVerified = parsedUser.emailVerified.toISOString();
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     if (typeof user.favoriteGenres === 'string') {
         try {
             parsedUser.favoriteGenres = JSON.parse(user.favoriteGenres);

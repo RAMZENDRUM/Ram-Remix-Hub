@@ -5,7 +5,6 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 
 import { BrandLogo } from "@/components/BrandLogo";
-import ShaderBackground from "@/components/ShaderBackground";
 import ShinyButton from "@/components/ui/ShinyButton";
 
 import Link from "next/link";
@@ -21,11 +20,8 @@ const PreAuthLanding: React.FC = () => {
 
     // If logic is handled in Parent (page.tsx), we might not need this useEffect redirect here.
     // But for safety, if this component is mounted and user becomes auth, we redirect.
-    useEffect(() => {
-        if (status === "authenticated") {
-            window.location.reload();
-        }
-    }, [status]);
+    // Removed automatic reload to prevent infinite refresh loops if server/client session states desync.
+    // If the user is authenticated but sees this page, they can click "Login" which handles the redirect naturally.
 
     const handleLoginClick = () => {
         if (callbackUrl) {
@@ -65,10 +61,15 @@ const PreAuthLanding: React.FC = () => {
                 </nav>
             </header>
 
-            <ShaderBackground />
+            {/* Premium CSS Gradient Background */}
+            <div className="absolute inset-0 pointer-events-none">
+                <div className="absolute inset-0 bg-[#05060D]" />
+                <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-[#7B2FF7]/10 blur-[120px]" />
+                <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-[#2FD8F5]/5 blur-[120px]" />
+            </div>
 
-            {/* Noise Texture Overlay for Premium Feel - Optimized opacity */}
-            <div className="absolute inset-0 z-[1] opacity-[0.02] pointer-events-none bg-[url('https://grainy-gradients.vercel.app/noise.svg')] bg-repeat"></div>
+            {/* Noise Texture Overlay */}
+            <div className="absolute inset-0 z-[1] opacity-[0.03] pointer-events-none bg-[url('https://grainy-gradients.vercel.app/noise.svg')] bg-repeat"></div>
 
             {/* HERO CONTENT */}
             <div className="relative z-10 flex flex-col items-center -mt-10 px-4 pt-28 md:pt-40">

@@ -5,7 +5,7 @@ import dynamic from "next/dynamic";
 import type { Application, SPEObject } from "@splinetool/runtime";
 
 // Dynamically import Spline to avoid SSR
-const Spline = dynamic(() => import("@splinetool/react-spline"), {
+const Spline = dynamic(() => import("@splinetool/react-spline/next"), {
     ssr: false,
     loading: () => <div className="w-full h-full bg-black/50 animate-pulse" />,
 });

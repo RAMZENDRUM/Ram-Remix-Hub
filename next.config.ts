@@ -15,6 +15,7 @@ const nextConfig: NextConfig = {
     config.resolve.alias['three'] = path.resolve(__dirname, 'node_modules/three')
     return config
   },
+  turbopack: {},
 };
 
 export default nextConfig;

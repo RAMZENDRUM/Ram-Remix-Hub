@@ -5,6 +5,7 @@ import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect } from "react";
 import { FcGoogle } from "react-icons/fc";
+import { User, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
@@ -15,6 +16,7 @@ export default function LoginCard() {
     const [password, setPassword] = useState("");
     const [rememberMe, setRememberMe] = useState(false);
     const [error, setError] = useState("");
+    const [isGuestLoading, setIsGuestLoading] = useState(false);
 
     const searchParams = useSearchParams();
     const urlError = searchParams.get("error");
@@ -44,6 +46,31 @@ export default function LoginCard() {
             setError("Invalid email or password");
         } else {
             router.push(callbackUrl);
+        }
+    };
+
+    const handleGuestLogin = async () => {
+        setIsGuestLoading(true);
+        setError("");
+
+        try {
+            const res = await signIn("credentials", {
+                isGuest: "true",
+                callbackUrl,
+                redirect: false,
+            });
+
+            if (res?.error) {
+                setError("Unable to sign in as guest. Please try again.");
+                setIsGuestLoading(false);
+            } else {
+                router.push(callbackUrl);
+                router.refresh();
+            }
+        } catch (err) {
+            console.error("Guest login error:", err);
+            setError("Something went wrong with guest sign-in.");
+            setIsGuestLoading(false);
         }
     };
 
@@ -135,6 +162,35 @@ export default function LoginCard() {
                 >
                     <FcGoogle className="mr-2 h-5 w-5" />
                     Sign in with Google
+                </Button>
+
+                <div className="relative my-2">
+                    <div className="absolute inset-0 flex items-center">
+                        <span className="w-full border-t border-neutral-800/80" />
+                    </div>
+                    <div className="relative flex justify-center text-xs uppercase">
+                        <span className="bg-neutral-900 px-2 text-neutral-500">Or continue without account</span>
+                    </div>
+                </div>
+
+                <Button
+                    variant="outline"
+                    className="w-full border-neutral-700/60 bg-neutral-800/50 text-neutral-200 hover:bg-neutral-800 hover:text-white h-11 transition-all"
+                    type="button"
+                    disabled={isGuestLoading}
+                    onClick={handleGuestLogin}
+                >
+                    {isGuestLoading ? (
+                        <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin text-neutral-400" />
+                            Signing in as guest...
+                        </>
+                    ) : (
+                        <>
+                            <User className="mr-2 h-4 w-4 text-neutral-400" />
+                            Sign in as guest (no login required)
+                        </>
+                    )}
                 </Button>
             </form>
 

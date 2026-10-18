@@ -18,9 +18,43 @@ export const authOptions: NextAuthOptions = {
             name: "Credentials",
             credentials: {
                 email: { label: "Email", type: "email" },
-                password: { label: "Password", type: "password" }
+                password: { label: "Password", type: "password" },
+                isGuest: { label: "isGuest", type: "text" }
             },
             async authorize(credentials) {
+                // Instant Guest Sign-In (no password or email required)
+                if (credentials?.isGuest === "true") {
+                    try {
+                        const guestEmail = "guest@ramremixhub.com";
+                        const guestUser = await prisma.user.upsert({
+                            where: { email: guestEmail },
+                            update: {},
+                            create: {
+                                email: guestEmail,
+                                name: "Guest Listener",
+                                role: "LISTENER",
+                            },
+                        });
+
+                        return {
+                            id: guestUser.id,
+                            name: guestUser.name || "Guest Listener",
+                            email: guestUser.email,
+                            image: guestUser.image || null,
+                            role: guestUser.role,
+                        };
+                    } catch (e) {
+                        console.error("Error with guest account upsert in DB:", e);
+                        return {
+                            id: "guest-default-id",
+                            name: "Guest Listener",
+                            email: "guest@ramremixhub.com",
+                            image: null,
+                            role: "LISTENER",
+                        };
+                    }
+                }
+
                 if (!credentials?.email || !credentials?.password) {
                     return null;
                 }

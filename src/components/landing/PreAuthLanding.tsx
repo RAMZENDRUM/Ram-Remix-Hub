@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useSession } from "next-auth/react";
+import { useSession, signIn } from "next-auth/react";
+import { Loader2 } from "lucide-react";
 
 import { BrandLogo } from "@/components/BrandLogo";
 import ShinyButton from "@/components/ui/ShinyButton";
@@ -17,6 +18,7 @@ const PreAuthLanding: React.FC = () => {
     const callbackUrl = searchParams.get("callbackUrl");
 
     const { data: session, status } = useSession();
+    const [isGuestLoading, setIsGuestLoading] = useState(false);
 
     // If logic is handled in Parent (page.tsx), we might not need this useEffect redirect here.
     // But for safety, if this component is mounted and user becomes auth, we redirect.
@@ -28,6 +30,20 @@ const PreAuthLanding: React.FC = () => {
             router.push(`/auth?callbackUrl=${encodeURIComponent(callbackUrl)}`);
         } else {
             router.push("/auth");
+        }
+    };
+
+    const handleGuestClick = async () => {
+        setIsGuestLoading(true);
+        try {
+            await signIn("credentials", {
+                isGuest: "true",
+                callbackUrl: callbackUrl || "/",
+                redirect: true,
+            });
+        } catch (err) {
+            console.error("Guest login failed:", err);
+            setIsGuestLoading(false);
         }
     };
 
@@ -108,6 +124,24 @@ const PreAuthLanding: React.FC = () => {
 
                         {/* Shimmer (reduced intensity) */}
                         <div className="absolute inset-0 -translate-x-full group-hover:animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-white/5 to-transparent z-0" />
+                    </button>
+
+                    <button
+                        onClick={handleGuestClick}
+                        disabled={isGuestLoading}
+                        className="text-xs md:text-sm text-neutral-400 hover:text-white transition-colors flex items-center gap-1.5 group cursor-pointer py-1"
+                    >
+                        {isGuestLoading ? (
+                            <>
+                                <Loader2 className="w-3.5 h-3.5 animate-spin text-[#2FD8F5]" />
+                                <span className="text-[#2FD8F5] font-medium">Entering as guest...</span>
+                            </>
+                        ) : (
+                            <>
+                                <span className="underline underline-offset-4 decoration-neutral-700 group-hover:decoration-neutral-400 transition-all">Sign in as guest (no login required)</span>
+                                <span className="group-hover:translate-x-0.5 transition-transform text-neutral-400">→</span>
+                            </>
+                        )}
                     </button>
 
                     <p className="text-[9px] md:text-[10px] text-[#2FD8F5] font-bold tracking-[0.2em] uppercase opacity-70 animate-fadeIn" style={{ animationDelay: '0.4s' }}>

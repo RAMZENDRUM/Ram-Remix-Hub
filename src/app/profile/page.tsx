@@ -4,52 +4,54 @@ import { authOptions } from "@/lib/auth";
 import { CreatorDashboard } from "@/components/profile/CreatorDashboard";
 import { ListenerProfile } from "@/components/profile/ListenerProfile";
 import { getCreatorOverview } from "@/lib/profileOverview";
-import { prisma } from "@/lib/prisma";
+import { getLocalUserByEmail } from "@/lib/localData";
 
 export default async function ProfilePage() {
     const session = await getServerSession(authOptions);
 
-    if (!session || !session.user?.id) {
+    if (!session || !session.user) {
         redirect("/auth");
     }
 
-    // Fetch fresh user data to get latest profile updates (age, country, etc.)
-    const user = await prisma.user.findUnique({
-        where: { id: session.user.id },
-    });
+    let user: any = null;
+
+    // Try DB if available
+    try {
+        const { prisma } = await import("@/lib/prisma");
+        if (session.user.email) {
+            user = await prisma.user.findUnique({
+                where: { email: session.user.email },
+            });
+        }
+    } catch (e) {
+        // DB offline
+    }
+
+    // Fallback to local user or session data
+    if (!user && session.user.email) {
+        user = getLocalUserByEmail(session.user.email);
+    }
 
     if (!user) {
-        redirect("/auth");
+        user = {
+            id: (session.user as any).id || "user-session-id",
+            name: session.user.name || "Music Lover",
+            email: session.user.email,
+            role: (session.user as any).role || "LISTENER",
+            image: session.user.image || null,
+            favoriteGenres: [],
+        };
     }
 
-    const role = (user as any).role;
+    const role = user.role || "LISTENER";
+    let parsedUser = { ...user };
 
-    // Parse favoriteGenres if it's a string (JSON)
-    let parsedUser = { ...user } as any;
-
-    // Manual date serialization to prevent Server Client serialization errors
-    if (parsedUser.createdAt) parsedUser.createdAt = parsedUser.createdAt.toISOString();
-    if (parsedUser.updatedAt) parsedUser.updatedAt = parsedUser.updatedAt.toISOString();
-    if (parsedUser.emailVerified) parsedUser.emailVerified = parsedUser.emailVerified.toISOString();
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    if (parsedUser.createdAt && typeof parsedUser.createdAt !== 'string') {
+        parsedUser.createdAt = parsedUser.createdAt.toISOString();
+    }
+    if (parsedUser.updatedAt && typeof parsedUser.updatedAt !== 'string') {
+        parsedUser.updatedAt = parsedUser.updatedAt.toISOString();
+    }
 
     if (typeof user.favoriteGenres === 'string') {
         try {
@@ -66,6 +68,5 @@ export default async function ProfilePage() {
         return <CreatorDashboard user={parsedUser} overview={overview} />;
     }
 
-    // normal user
     return <ListenerProfile user={parsedUser} />;
 }

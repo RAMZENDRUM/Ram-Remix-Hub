@@ -1,23 +1,25 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { getLocalTracks } from "@/lib/localData";
 
 export async function GET() {
     try {
-        const session = await getServerSession(authOptions);
-        if (!session) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        try {
+            const { prisma } = await import("@/lib/prisma");
+            const dbTracks = await prisma.track.findMany({
+                where: { isUnlisted: false },
+                orderBy: { createdAt: 'desc' },
+            });
+            if (dbTracks && dbTracks.length > 0) {
+                return NextResponse.json(dbTracks);
+            }
+        } catch (dbErr) {
+            // DB offline: fallback to bundled tracks
         }
 
-        const tracks = await prisma.track.findMany({
-            where: { isUnlisted: false },
-            orderBy: { createdAt: 'desc' },
-        });
-
-        return NextResponse.json(tracks);
+        const localTracks = getLocalTracks();
+        return NextResponse.json(localTracks);
     } catch (error) {
-        console.error("Error fetching tracks:", error);
-        return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+        console.error("Error in /api/tracks:", error);
+        return NextResponse.json(getLocalTracks());
     }
 }

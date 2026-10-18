@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { getLocalTrackById } from "@/lib/localData";
 
 export async function GET(
     request: Request,
@@ -7,21 +7,31 @@ export async function GET(
 ) {
     try {
         const { id } = await params;
-        const track = await prisma.track.findUnique({
-            where: { id },
-        });
+        try {
+            const { prisma } = await import("@/lib/prisma");
+            const track = await prisma.track.findUnique({
+                where: { id },
+            });
 
-        if (!track) {
+            if (track) {
+                return NextResponse.json({
+                    ...track,
+                    createdAt: track.createdAt.toISOString(),
+                    updatedAt: track.updatedAt.toISOString(),
+                });
+            }
+        } catch (dbErr) {
+            // DB offline: fallback to bundled tracks
+        }
+
+        const localTrack = getLocalTrackById(id);
+        if (!localTrack) {
             return NextResponse.json({ error: "Track not found" }, { status: 404 });
         }
 
-        return NextResponse.json({
-            ...track,
-            createdAt: track.createdAt.toISOString(),
-            updatedAt: track.updatedAt.toISOString(),
-        });
+        return NextResponse.json(localTrack);
     } catch (error) {
         console.error("Error fetching track:", error);
-        return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+        return NextResponse.json({ error: "Track not found" }, { status: 404 });
     }
 }

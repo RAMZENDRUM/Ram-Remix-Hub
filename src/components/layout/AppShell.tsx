@@ -1,23 +1,17 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { useSession } from "next-auth/react";
 import Navbar from "@/components/Navbar";
 import { SiteFooter } from "@/components/layout/footer";
 import GlobalPlayer from "@/components/player/GlobalPlayer";
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
-    const { status } = useSession();
 
-    // Hide navbar/footer on /auth, and on / (home) if not authenticated
+    // Only hide navbar & footer on /auth page
     const isAuthPage = pathname === "/auth";
-    const isLandingPage = pathname === "/" && status === "unauthenticated";
-    const isAboutPage = pathname === "/about" && status === "unauthenticated";
-    const isAboutWebsitePage = pathname === "/about-website" && status === "unauthenticated";
-    const isPublic = isAuthPage || isLandingPage || isAboutPage || isAboutWebsitePage;
 
-    if (isPublic) {
+    if (isAuthPage) {
         return <>{children}</>;
     }
 

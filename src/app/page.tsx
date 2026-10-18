@@ -1,22 +1,17 @@
-import { prisma } from "@/lib/prisma";
 import HomeClient from "@/components/home/HomeClient";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
-import PreAuthLanding from "@/components/landing/PreAuthLanding";
+import { getLocalTracks } from "@/lib/localData";
 
 export const dynamic = 'force-dynamic';
 
 export default async function Home() {
+  let tracks: any[] = [];
+
+  // Try Prisma first if database is available
   try {
-    const session = await getServerSession(authOptions);
-
-    if (!session) {
-      return <PreAuthLanding />;
-    }
-
+    const { prisma } = await import("@/lib/prisma");
     const rawTracks = await prisma.track.findMany({
       orderBy: { createdAt: 'desc' },
-      // Select only fields needed for the home page to reduce payload
+      where: { isUnlisted: false },
       select: {
         id: true,
         title: true,
@@ -27,17 +22,27 @@ export default async function Home() {
       }
     });
 
-    // Serialize dates to strings to avoid passing non-serializable data to Client Components
-    const tracks = rawTracks.map(track => ({
-      ...track,
-      createdAt: track.createdAt.toISOString()
-    }));
-
-    return <HomeClient initialRemixes={tracks} />;
+    if (rawTracks && rawTracks.length > 0) {
+      tracks = rawTracks.map(track => ({
+        ...track,
+        createdAt: track.createdAt.toISOString()
+      }));
+    }
   } catch (error) {
-    console.error("Failed to load Home page data:", error);
-    // In case of database or auth error, fallback safely
-    // You might want to show an error state or the landing page
-    return <PreAuthLanding />;
+    // Database offline: safe silent fallback to bundled data
   }
+
+  // Fallback to bundled local track data (runs anywhere without DB or laptop running)
+  if (tracks.length === 0) {
+    tracks = getLocalTracks().map(track => ({
+      id: track.id,
+      title: track.title,
+      artist: track.artist,
+      coverImageUrl: track.coverImageUrl,
+      isUnlisted: !!track.isUnlisted,
+      createdAt: track.createdAt,
+    }));
+  }
+
+  return <HomeClient initialRemixes={tracks} />;
 }

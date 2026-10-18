@@ -1,0 +1,62 @@
+[
+  {
+    "id": "cmioh842t000014aqzpaiqs0u",
+    "name": "Ram",
+    "email": "ramanathanb86@gmail.com",
+    "emailVerified": null,
+    "passwordHash": "$2b$10$HUmI/p4MD71qqiKPjN3WguGjynoqShR1TPt1RMVvmdkeyNo949lrm",
+    "image": null,
+    "createdAt": "2025-12-02T11:10:12.378Z",
+    "updatedAt": "2025-12-02T11:10:12.378Z",
+    "role": "LISTENER",
+    "age": null,
+    "country": null,
+    "favoriteGenres": null,
+    "profileImageUrl": null
+  },
+  {
+    "id": "cmioj0hjc0000gnzhikzbn718",
+    "name": "zendrum",
+    "email": "cookwithcomali5@gmail.com",
+    "emailVerified": null,
+    "passwordHash": null,
+    "image": null,
+    "createdAt": "2025-12-02T12:00:15.815Z",
+    "updatedAt": "2025-12-04T13:49:54.492Z",
+    "role": "LISTENER",
+    "age": 65,
+    "country": "Bhutan",
+    "favoriteGenres": "[\"R&B\",\"EDM\"]",
+    "profileImageUrl": null
+  },
+  {
+    "id": "cmiok1oub00003dsinvd7iw61",
+    "name": "Ram",
+    "email": "ramzendrum@gmail.com",
+    "emailVerified": null,
+    "passwordHash": "$2b$10$DzZ3CoPz40hgUxfA172t.u8Cv49iYshLe9bjrMGCq2BgfmLXfvKGW",
+    "image": null,
+    "createdAt": "2025-12-02T12:29:11.554Z",
+    "updatedAt": "2026-02-19T12:56:49.604Z",
+    "role": "ADMIN",
+    "age": 18,
+    "country": "India",
+    "favoriteGenres": "[\"EDM\",\"R&B\"]",
+    "profileImageUrl": null
+  },
+  {
+    "id": "cmltgj73b0000vm8vmp6mj1e3",
+    "name": "Test User",
+    "email": "user@example.com",
+    "emailVerified": null,
+    "passwordHash": "$2b$10$duodAw2m4cmqKAvC5v7NNOERQ9qxja37mbAu8GcwfS1stXua0aLcy",
+    "image": null,
+    "createdAt": "2026-02-19T12:48:47.783Z",
+    "updatedAt": "2026-10-18T14:53:07.972Z",
+    "role": "LISTENER",
+    "age": null,
+    "country": null,
+    "favoriteGenres": null,
+    "profileImageUrl": null
+  }
+]

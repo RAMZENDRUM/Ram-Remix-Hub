@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
+import { getLocalUserByEmail, addLocalUser } from "@/lib/localData";
 
 export async function POST(req: Request) {
     try {
@@ -13,11 +13,10 @@ export async function POST(req: Request) {
             );
         }
 
-        const existingUser = await prisma.user.findUnique({
-            where: { email },
-        });
+        const normalizedEmail = email.toLowerCase().trim();
 
-        if (existingUser) {
+        // Check if exists in local bundled data
+        if (getLocalUserByEmail(normalizedEmail)) {
             return NextResponse.json(
                 { error: "User already exists" },
                 { status: 400 }
@@ -26,22 +25,47 @@ export async function POST(req: Request) {
 
         const passwordHash = await bcrypt.hash(password, 10);
 
-        const user = await prisma.user.create({
-            data: {
-                name,
-                email,
-                passwordHash,
-            },
-        });
+        // Try Prisma if available
+        try {
+            const { prisma } = await import("@/lib/prisma");
+            const existingUser = await prisma.user.findUnique({
+                where: { email: normalizedEmail },
+            });
 
-        return NextResponse.json(
-            { message: "User created successfully", user: { id: user.id, email: user.email } },
-            { status: 201 }
-        );
+            if (existingUser) {
+                return NextResponse.json(
+                    { error: "User already exists" },
+                    { status: 400 }
+                );
+            }
+
+            const user = await prisma.user.create({
+                data: {
+                    name,
+                    email: normalizedEmail,
+                    passwordHash,
+                },
+            });
+
+            // Also mirror in local store
+            addLocalUser({ name, email: normalizedEmail, passwordHash });
+
+            return NextResponse.json(
+                { message: "User created successfully", user: { id: user.id, email: user.email } },
+                { status: 201 }
+            );
+        } catch (dbErr) {
+            // DB offline: save directly to local user store
+            const user = addLocalUser({ name, email: normalizedEmail, passwordHash });
+            return NextResponse.json(
+                { message: "User created successfully", user: { id: user.id, email: user.email } },
+                { status: 201 }
+            );
+        }
     } catch (error) {
         console.error("Registration error:", error);
         return NextResponse.json(
-            { error: "Internal server error" },
+            { error: "Registration failed" },
             { status: 500 }
         );
     }

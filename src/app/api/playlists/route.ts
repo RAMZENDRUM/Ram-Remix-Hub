@@ -56,8 +56,11 @@ export async function GET(req: Request) {
         });
 
     } catch (error) {
-        console.error("Failed to fetch playlists", error);
-        return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+        console.error("Failed to fetch playlists (DB offline, using fallback):", error);
+        return NextResponse.json({
+            curated: [],
+            user: []
+        });
     }
 }
 

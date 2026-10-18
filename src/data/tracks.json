@@ -1,0 +1,44 @@
+[
+  {
+    "id": "cmiok6zfm00033dsiv0pdhu4t",
+    "title": "She is like my mom (Remix)",
+    "description": "this is a wholesome remix",
+    "artist": null,
+    "tags": "r&b",
+    "genre": null,
+    "type": "Remix",
+    "isUnlisted": false,
+    "audioUrl": "/uploads/audio/1764678798545-She-Is-Like-My-Mom-Future-Garage-Remix.mp3",
+    "coverImageUrl": "/uploads/covers/1764678798550-20250227.jpg",
+    "createdAt": "2025-12-02T12:33:18.562Z",
+    "updatedAt": "2025-12-02T12:33:18.562Z"
+  },
+  {
+    "id": "cmioltef50000ipek8rc06xkt",
+    "title": "She is like my mom",
+    "description": "A remix by AI",
+    "artist": "Ram",
+    "tags": null,
+    "genre": "R&B",
+    "type": "Remix",
+    "isUnlisted": false,
+    "audioUrl": "/uploads/audio/1764681524009-She-Is-Like-My-Mom-Future-Garage-Remix.mp3",
+    "coverImageUrl": "/uploads/covers/1764681524029-20250207.jpg",
+    "createdAt": "2025-12-02T13:18:44.029Z",
+    "updatedAt": "2025-12-02T13:18:44.029Z"
+  },
+  {
+    "id": "cmirkb6u60000td2wqjj6tiug",
+    "title": "king arrives",
+    "description": "king walking into the cage",
+    "artist": "ram",
+    "tags": null,
+    "genre": "Soundtrack / Score",
+    "type": "BGM",
+    "isUnlisted": false,
+    "audioUrl": "https://res.cloudinary.com/dzqcuxchc/video/upload/v1764860390/King_bgm_xex90a.mp3",
+    "coverImageUrl": "https://res.cloudinary.com/dzqcuxchc/image/upload/v1764860391/20250307_sqbv7g.jpg",
+    "createdAt": "2025-12-04T14:59:53.304Z",
+    "updatedAt": "2025-12-04T14:59:53.304Z"
+  }
+]
